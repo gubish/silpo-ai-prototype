@@ -2,6 +2,17 @@
 
 Чистий HTML/CSS/JS, без збірки та залежностей.
 
+## Онлайн
+
+- Прототип: https://gubish.github.io/silpo-ai-prototype/ (гілка дизайну — з перемикача; для посилання на конкретну:
+  `…/silpo-ai-prototype/?branch=a` або `?branch=b`, можна з екраном: `?branch=b#listing/fruits`).
+- Код: https://github.com/gubish/silpo-ai-prototype (публічний; публікується GitHub Pages з гілки `main`).
+- Оновити онлайн-версію після правок (з папки `02`):
+  ```bash
+  git add -A && git commit -m "Що змінили" && git push
+  ```
+  За хвилину-дві зміни зʼявляться за посиланням.
+
 ## Як відкрити
 
 - **Просто:** двічі клацніть `index.html` — працює офлайн, навіть з диска.
