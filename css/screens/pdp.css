@@ -1,0 +1,188 @@
+/* =====================================================================
+   КАРТКА ТОВАРУ (Figma: 5945:14737)
+   ===================================================================== */
+
+#pdp { display: flex; flex-direction: column; }
+
+/* ---------- Стікі-навбар (z-index 15, висота 44) ---------- */
+.pdp-nav {
+  position: sticky;
+  top: var(--statusbar-h); /* кріпиться під статус-баром */
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: var(--space-24);
+  height: 44px;
+  padding: 0 var(--space-16);
+  background: var(--white);
+}
+.pdp-nav__spacer { flex: 1; }
+.pdp-nav button, .pdp-nav img { width: 24px; height: 24px; }
+
+/* ---------- Галерея ---------- */
+.pdp-gallery { position: relative; }
+.pdp-gallery > img { width: 100%; aspect-ratio: 1; object-fit: contain; }
+.pdp-gallery__dots {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  display: flex;
+  gap: var(--space-8);
+  padding: var(--space-8);
+}
+.pdp-gallery__dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-12); }
+.pdp-gallery__dots i.is-active { background: var(--blue-500); }
+
+/* ---------- Назва + залишок ---------- */
+.pdp-head { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-8); padding: var(--space-8) var(--space-16); }
+.pdp-title { font-size: 22px; line-height: 1.2; font-weight: var(--fw-bold); color: rgba(32, 33, 36, 0.87); }
+.pdp-stock {
+  padding: 6px var(--space-8);
+  border-radius: var(--radius-4);
+  background: var(--blue-100);
+  font-size: var(--fs-caption-sm);
+  line-height: 1;
+  color: rgba(32, 33, 36, 0.87);
+}
+
+/* ---------- Акордеони ---------- */
+.pdp-acc { margin: 0 var(--space-16); border-bottom: 1px solid var(--ink-12); padding-bottom: var(--space-8); }
+.pdp-acc summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  list-style: none;
+  cursor: pointer;
+  font-size: var(--fs-body-md);
+  line-height: 1.4;
+  font-weight: var(--fw-semibold);
+  color: var(--ink-100);
+}
+.pdp-acc summary::-webkit-details-marker { display: none; }
+.pdp-acc summary img { width: 24px; height: 24px; transition: transform 0.2s; }
+.pdp-acc:not([open]) summary img { transform: rotate(180deg); }
+.pdp-text { display: flex; flex-direction: column; gap: var(--space-8); font-size: var(--fs-body-sm); line-height: 1.25; color: rgba(32, 33, 36, 0.87); }
+.pdp-text p:last-child { line-height: 1.4; color: var(--ink-100); }
+.pdp-text b { font-weight: var(--fw-semibold); }
+
+.pdp-rows { margin: 0; }
+.pdp-row { display: flex; gap: var(--space-16); padding: var(--space-8) 0; font-size: var(--fs-body-sm); line-height: 1.4; }
+.pdp-row dt { flex: 1; color: var(--ink-72); }
+.pdp-row dd { width: 149px; margin: 0; text-align: right; color: var(--ink-100); }
+.pdp-row dd span { display: block; color: rgba(32, 33, 36, 0.87); }
+
+/* ---------- 18+ ---------- */
+.pdp-warning {
+  display: flex;
+  gap: var(--space-8);
+  margin: var(--space-16);
+  padding: var(--space-8);
+  border-radius: var(--radius-8);
+  background: #fdebed;
+  font-size: var(--fs-body-sm);
+  line-height: 1.25;
+  color: rgba(32, 33, 36, 0.87);
+}
+.pdp-warning__badge {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1.6px solid var(--error-700);
+  border-radius: 100px;
+  color: var(--error-700);
+  font-size: var(--fs-caption-sm);
+  line-height: 1;
+  font-weight: var(--fw-bold);
+}
+
+/* ---------- Схожі товари ---------- */
+.pdp-similar { padding: 0 var(--space-16) var(--space-16); }
+.pdp-similar__head { display: flex; align-items: center; justify-content: space-between; padding: var(--space-8) 0; }
+.pdp-similar__head h2 { font-size: 18px; line-height: 1.35; font-weight: var(--fw-semibold); color: var(--ink-100); }
+.pdp-similar__head button { font-size: var(--fs-body-sm); line-height: 1.2; color: rgba(32, 33, 36, 0.54); text-decoration: underline; text-decoration-thickness: 0.5px; text-underline-offset: 4px; }
+.pdp-similar__row { gap: var(--space-8); padding-top: 0; }
+
+.sim-card {
+  flex: none;
+  width: 124px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-8);
+  border-radius: var(--radius-8);
+  background: var(--white);
+  cursor: pointer;
+}
+.sim-card__media { position: relative; width: 108px; height: 108px; margin-bottom: var(--space-12); }
+.sim-card__img { width: 100%; height: 100%; object-fit: contain; border-radius: var(--radius-8); }
+.sim-card__badge { position: absolute; left: 0; top: 0; width: 32px; height: 32px; }
+.sim-card__media .like-btn { position: absolute; right: 0; top: 0; }
+.sim-card__media .qty { position: absolute; left: 0; right: 0; bottom: 0; }
+.sim-card .qty__add { border-color: #1b47c8; }
+.sim-card .price-old { font-size: var(--fs-body-sm); line-height: 1.1; }
+.discount-tag--yellow { background: #ffcd00; color: #04000d; font-weight: var(--fw-semibold); }
+.sim-card .price { font-size: 18px; line-height: 1.1; }
+.sim-card .weight { font-size: var(--fs-caption-md); line-height: 1.16; }
+.sim-card__name {
+  font-size: var(--fs-caption-md);
+  line-height: 1.16;
+  color: var(--ink-100);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sim-card__rating { display: flex; align-items: center; gap: 2px; margin-top: var(--space-4); font-size: var(--fs-caption-sm); line-height: 1; font-weight: var(--fw-semibold); color: rgba(32, 33, 36, 0.87); }
+.sim-card__rating img { width: 12px; height: 12px; }
+
+/* ---------- Стікі-панель ціни (z-index 20) ---------- */
+.pdp-bottom {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-16) var(--home-indicator-h);
+  background: var(--white);
+  box-shadow: 0 -1px 0 var(--ink-8);
+}
+.pdp-bottom__price { flex: 1; display: flex; flex-direction: column; gap: var(--space-4); }
+.pdp-bottom__price strong { font-size: 24px; line-height: 1; font-weight: var(--fw-bold); color: var(--ink-100); }
+.pdp-bottom__price span { font-size: var(--fs-body-sm); line-height: 1.1; color: rgba(32, 33, 36, 0.6); }
+/* «У кошик» / степер — права половина панелі */
+.pdp-bottom__cta { flex: 1; }
+.pdp-bottom .cart-pill { position: absolute; right: var(--space-16); bottom: calc(100% + 10px); }
+.pdp-bottom__add {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  height: 48px;
+  border-radius: var(--radius-8);
+  background: #1b47c8;
+  color: var(--white);
+  font-size: var(--fs-body-md);
+  line-height: 1.1;
+  font-weight: var(--fw-bold);
+  transition: transform 0.12s;
+}
+.pdp-bottom__add:active { transform: scale(0.97); }
+.pdp-bottom__add img { width: 20px; height: 20px; }
+/* степер на всю ширину кнопки (Figma «Counter big») */
+.pdp-bottom__cta.has-qty .pdp-stepper {
+  height: 48px;
+  padding: 0 var(--space-16);
+  border-radius: var(--radius-8);
+  background: var(--cart-pill-bg);
+}
+.pdp-stepper button { width: 20px; height: 20px; }
+.pdp-stepper button img { width: 20px; height: 20px; }
+.pdp-stepper output { flex: 1; text-align: center; font-size: var(--fs-body-md); line-height: 1.1; font-weight: var(--fw-bold); }

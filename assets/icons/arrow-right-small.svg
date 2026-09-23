@@ -1,0 +1,41 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="24" height="24" fill="#F5F5F5"/>
+<g id="Silpo AI">
+<path d="M-1296 -390C-1296 -391.104 -1295.1 -392 -1294 -392H4505C4506.1 -392 4507 -391.105 4507 -390V3175C4507 3176.1 4506.1 3177 4505 3177H-1294C-1295.1 3177 -1296 3176.1 -1296 3175V-390Z" fill="#EEF2FC"/>
+<path d="M-1294 -392V-391H4505V-392V-393H-1294V-392ZM4507 -390H4506V3175H4507H4508V-390H4507ZM4505 3177V3176H-1294V3177V3178H4505V3177ZM-1296 3175H-1295V-390H-1296H-1297V3175H-1296ZM-1294 3177V3176C-1294.55 3176 -1295 3175.55 -1295 3175H-1296H-1297C-1297 3176.66 -1295.66 3178 -1294 3178V3177ZM4507 3175H4506C4506 3175.55 4505.55 3176 4505 3176V3177V3178C4506.66 3178 4508 3176.66 4508 3175H4507ZM4505 -392V-391C4505.55 -391 4506 -390.552 4506 -390H4507H4508C4508 -391.657 4506.66 -393 4505 -393V-392ZM-1294 -392V-393C-1295.66 -393 -1297 -391.657 -1297 -390H-1296H-1295C-1295 -390.552 -1294.55 -391 -1294 -391V-392Z" fill="black" fill-opacity="0.1"/>
+<g id="Catalog">
+<rect width="375" height="1722" transform="translate(-323 -312)" fill="#EEF2FC"/>
+<g id="Frame 1948754823">
+<g id="Frame 1948754973">
+<rect x="-323" y="-96" width="375" height="732" rx="24" fill="white"/>
+<g id="Frame 1948754969">
+<g id="Frame 1948754736">
+<g id="Promo" filter="url(#filter0_d_5712_18505)">
+<mask id="path-5-outside-1_5712_18505" maskUnits="userSpaceOnUse" x="-307" y="-17" width="343" height="57" fill="black">
+<rect fill="white" x="-307" y="-17" width="343" height="57"/>
+<path d="M-307 -4C-307 -10.6274 -301.627 -16 -295 -16H24C30.6274 -16 36 -10.6274 36 -4V28C36 34.6274 30.6274 40 24 40H-295C-301.627 40 -307 34.6274 -307 28V-4Z"/>
+</mask>
+<path d="M-307 -4C-307 -10.6274 -301.627 -16 -295 -16H24C30.6274 -16 36 -10.6274 36 -4V28C36 34.6274 30.6274 40 24 40H-295C-301.627 40 -307 34.6274 -307 28V-4Z" fill="#F6F8FD"/>
+<path d="M-307 -4C-307 -11.1797 -301.18 -17 -294 -17H23C30.1797 -17 36 -11.1797 36 -4C36 -10.0751 30.6274 -15 24 -15H-295C-301.627 -15 -307 -10.0751 -307 -4ZM-307 -4M36 40H-307H36M36 40M-307 40V-16V40M-307 40M36 -16V40V-16" fill="white" mask="url(#path-5-outside-1_5712_18505)"/>
+<g id="icons-arrow2/arrow-right2">
+<path id="Vector" d="M9.99333 7C10.2535 7 10.5038 7.10007 10.7039 7.29022L14.7073 11.2932C15.0976 11.6835 15.0976 12.314 14.7073 12.7043L10.7039 16.7073C10.3136 17.0976 9.68307 17.0976 9.29274 16.7073C8.90242 16.317 8.90242 15.6865 9.29274 15.2962L12.5855 12.0038L9.29274 8.71128C8.90242 8.32099 8.90242 7.69052 9.29275 7.30022C9.4829 7.10007 9.73311 7 9.99333 7Z" fill="#13131E" fill-opacity="0.72"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<filter id="filter0_d_5712_18505" x="-307" y="-17" width="343" height="58" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="1"/>
+<feComposite in2="hardAlpha" operator="out"/>
+<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.06 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_5712_18505"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_5712_18505" result="shape"/>
+</filter>
+</defs>
+</svg>

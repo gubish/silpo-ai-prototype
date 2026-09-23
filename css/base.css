@@ -1,0 +1,266 @@
+/* =====================================================================
+   BASE — рамка телефона, статус-бар, екрани, таб-бар, плаваючі кнопки
+   Порядок z-index: екрани 1–2 · стікі-хедери (Лістинг 6, Каталог 10) ·
+   PDP-навбар 15 · PDP-нижня панель 20 · таб-бар 30 · FAB 50 · статус-бар 100
+   ===================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: #d9dce6;
+  font-family: var(--font-text);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "lnum" 1, "pnum" 1;
+}
+img { display: block; max-width: 100%; }
+[hidden] { display: none !important; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+p, h1, h2, h3 { margin: 0; }
+
+/* ---------- Рамка телефона ---------- */
+.phone {
+  position: relative;
+  width: var(--phone-w);
+  height: var(--phone-h);
+  background: var(--bg-white);
+  border-radius: var(--phone-radius);
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.12),
+    0 30px 60px -20px rgba(20, 30, 60, 0.45),
+    0 0 0 11px #0b0c12,
+    0 0 0 12px #23252e;
+  overflow: hidden;
+  isolation: isolate;
+}
+@media (max-width: 440px) {
+  body { padding: 0; }
+  .phone { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; box-shadow: none; }
+}
+
+/* ---------- Статус-бар (один на весь застосунок) ---------- */
+.statusbar {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: var(--statusbar-h);
+  z-index: 100;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--statusbar-bg, var(--bg-lavender));
+  transition: background-color 0.22s ease;
+}
+.statusbar__inner {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  width: calc(100% - 32px);
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px 0 22px;
+}
+.statusbar__time {
+  font-family: var(--font-system);
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 22px;
+  letter-spacing: -0.408px;
+  color: var(--black-100);
+}
+.statusbar__levels { display: flex; align-items: center; gap: 7px; }
+.statusbar__levels img { height: 13px; width: auto; }
+
+/* ---------- Екрани ---------- */
+.screen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  background: var(--screen-bg, var(--bg-white));
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.22s ease, visibility 0s linear 0.22s;
+}
+.screen::-webkit-scrollbar { display: none; }
+/* розпірка під статус-бар: контент починається під ним, а скролиться — під нього */
+.screen::before { content: ""; display: block; flex: none; height: var(--statusbar-h); }
+.screen:focus { outline: none; }
+.hscroll:focus:not(:focus-visible) { outline: none; }
+.screen.is-active { z-index: 2; opacity: 1; visibility: visible; transition: opacity 0.22s ease; }
+.screen[data-theme="lavender"] { --screen-bg: var(--bg-lavender); }
+
+/* ---------- Горизонтальні каруселі (drag-скрол мишею — js/app.js) ---------- */
+.hscroll {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  scroll-padding: 0 var(--space-16);
+  cursor: grab;
+}
+.hscroll::-webkit-scrollbar { display: none; }
+.hscroll.is-dragging { cursor: grabbing; scroll-snap-type: none; }
+.hscroll.is-dragging * { pointer-events: none; }
+.hscroll img { -webkit-user-drag: none; user-select: none; }
+/* карусель «вилазить» за бокові відступи до краю екрана */
+.hscroll--bleed { margin: 0 calc(-1 * var(--space-16)); padding: 0 var(--space-16); }
+
+/* ---------- Нижній таб-бар (тільки на головній) ---------- */
+.tabbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  height: calc(var(--tabbar-h) + var(--home-indicator-h));
+  padding-bottom: var(--home-indicator-h);
+  background: var(--white);
+  box-shadow: 0 -1px 0 var(--black-4);
+}
+.tabbar__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding-top: 8px;
+  color: var(--ink-72);
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+.tabbar__icon {
+  width: 24px;
+  height: 24px;
+}
+.tabbar__item.is-active { color: var(--blue-500); }
+.tabbar__count {
+  position: absolute;
+  top: 2px;
+  left: calc(50% + 4px);
+  min-width: 16px;
+  height: 12px;
+  padding: 0 3px;
+  border-radius: 100px;
+  background: var(--error-700);
+  color: var(--white);
+  font-size: 10px;
+  line-height: 12px;
+  text-align: center;
+}
+.tabbar__count[hidden] { display: none; }
+
+/* ---------- Плаваючі кнопки: грибочок і QR ----------
+   Стовпчик у правому нижньому куті, на всіх екранах. Відступ знизу
+   (--fab-bottom) рахує js/app.js: нижня панель екрана + плашка кошика,
+   якщо вона видима, — щоб вони «відштовхували» грибочок вище. */
+.fab-stack {
+  position: absolute;
+  right: 14px;
+  bottom: var(--fab-bottom, 16px);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  pointer-events: none; /* клікаються лише самі кнопки */
+  transition: bottom 0.22s ease;
+}
+.fab-stack > * { pointer-events: auto; }
+.fab-stack[hidden] { display: none; }
+@media (prefers-reduced-motion: reduce) { .fab-stack { transition: none; } }
+.ai-fab {
+  position: relative;
+  width: 76px;
+  height: 112px; /* вищий за квадрат: запас зверху під «шапку», що гойдається */
+  cursor: pointer; /* тап відкриває чат (js/ai-chat.js) */
+  filter: drop-shadow(0 8px 18px rgba(20, 30, 50, 0.28));
+}
+.ai-fab canvas { display: block; width: 100%; height: 100%; }
+/* грибочок (js/ai-assistant.js): настрої — шари-канваси один над одним,
+   новий проявляється поверх старого */
+.mushroom { overflow: visible; }
+.mushroom__layer { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.qr-fab {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  filter: drop-shadow(0 8px 18px rgba(240, 120, 20, 0.3));
+  transition: transform 0.12s;
+}
+.qr-fab:active { transform: scale(0.92); }
+.qr-fab img { width: 100%; height: 100%; }
+/* грибочок під QR: верх його канваса — прозорий запас під «шапку», тож підтягуємо ближче;
+   QR — поверх, щоб цей запас не перехоплював тапи */
+.qr-fab { z-index: 1; }
+.qr-fab:not([hidden]) + :is(.ai-fab, .mg-island) { margin-top: -28px; } /* .mg-island — обгортка острівця */
+
+/* ---------- «На початок» — поза рамкою телефона ---------- */
+.restart-btn {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  height: 40px;
+  padding: 0 var(--space-16) 0 var(--space-12);
+  border-radius: 100px;
+  background: var(--white);
+  box-shadow: 0 2px 8px rgba(20, 30, 60, 0.12);
+  font-size: var(--fs-body-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--blue-500);
+  transition: transform 0.12s ease;
+}
+.restart-btn img { width: 20px; height: 20px; }
+.restart-btn:active { transform: scale(0.96); }
+.restart-btn:focus-visible { outline: 2px solid var(--blue-500); outline-offset: 2px; }
+/* ---------- Перемикачі під «На початок»: гілка дизайну, далі версія тегів чату ---------- */
+.chips-toggle {
+  position: fixed;
+  top: 128px; /* 24 + 40 + 12 + 40 перемикача гілок + 12 */
+  left: 24px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: 40px;
+  padding: var(--space-4) var(--space-4) var(--space-4) var(--space-12);
+  border-radius: 100px;
+  background: var(--white);
+  box-shadow: 0 2px 8px rgba(20, 30, 60, 0.12);
+  font-size: var(--fs-body-sm);
+  font-weight: var(--fw-semibold);
+}
+.branch-toggle { top: 76px; } /* 24 + 40 кнопки + 12 */
+.island-toggle { top: 180px; } /* під перемикачем тегів: 128 + 40 + 12 */
+.island-toggle__sep { width: 1px; height: 20px; margin: 0 var(--space-4); background: var(--ink-12); }
+.chips-toggle__label { margin-right: var(--space-4); color: var(--black-72); }
+.chips-toggle__btn {
+  height: 32px;
+  min-width: 40px;
+  padding: 0 var(--space-12);
+  border-radius: 100px;
+  color: var(--blue-500);
+}
+.chips-toggle__btn[aria-pressed="true"] { background: var(--blue-500); color: var(--white); }
+.chips-toggle__btn:focus-visible { outline: 2px solid var(--blue-500); outline-offset: 2px; }
+
+/* телефон займає майже всю ширину — кнопки перекривали б інтерфейс */
+@media (max-width: 720px) { .restart-btn, .chips-toggle { display: none; } } /* .island-toggle — теж .chips-toggle */
+
+/* ---------- Утиліти ---------- */
+.visually-hidden { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

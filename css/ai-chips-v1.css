@@ -1,0 +1,64 @@
+/* =====================================================================
+   ТЕГИ ЧАТУ — ВЕРСІЯ 1 (збережена 2026-09-22 для експерименту з дизайном).
+   Капсули з мʼяким світінням у кольорах маскота, стовпчиком, 32px.
+   Заливка — окремий шар ::before під текстом: рухається лише він.
+   Діє, коли DATA.aiChat.chipsVersion = 'v1' (атрибут data-chips на .ai-chat).
+   Версія 2 будується поверх цієї (data-chips="v1 v2").
+   Кольори — --ai-chip-* у css/tokens.css.
+   ===================================================================== */
+.ai-chat[data-chips~="v1"] .ai-chat__openers, .ai-chat[data-chips~="v1"] .ai-followups {
+  display: flex;
+  flex-direction: column; /* теги стовпчиком */
+  align-items: flex-start; /* кожен тег — завширшки зі свій текст */
+  gap: var(--space-6);
+  margin-left: var(--ai-indent);
+  margin-top: var(--space-8); /* + 16px gap стрічки = 24px від повідомлення */
+}
+.ai-chat[data-chips~="v1"] .ai-followups { margin-top: var(--space-4); } /* + 20px gap стрічки = 24px, як у стартових */
+.ai-chat[data-chips~="v1"] .ai-chip {
+  position: relative;
+  isolation: isolate; /* ::before з z-index:-1 лишається всередині тегу, під текстом */
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: var(--space-4) var(--space-16);
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--fs-body-sm);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-body-sm);
+  color: var(--ai-chip-text);
+  text-align: left;
+  transition: transform 0.15s ease;
+}
+.ai-chat[data-chips~="v1"] .ai-chip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse at 85% 0%, var(--ai-chip-glow), transparent 52%),
+    linear-gradient(110deg, var(--ai-chip-lime), var(--ai-chip-lemon), var(--ai-chip-lime));
+  background-size: 160% 180%;
+  background-position: 20% 35%;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+  animation: ai-chip-glow-v1 12s ease-in-out infinite alternate;
+}
+@keyframes ai-chip-glow-v1 {
+  from { background-position: 20% 35%; }
+  to   { background-position: 75% 65%; }
+}
+.ai-chat[data-chips~="v1"] .ai-chip:active { transform: scale(0.98); }
+/* тег наступного кроку, для якого сценарію ще немає: виглядає так само, просто не натискається */
+.ai-chat[data-chips~="v1"] .ai-chip:disabled { cursor: default; }
+.ai-chat[data-chips~="v1"] .ai-chip:disabled:active { transform: none; }
+.ai-chat[data-chips~="v1"] .ai-chip:focus { outline: none; }
+.ai-chat[data-chips~="v1"] .ai-chip:focus-visible { outline: 2px solid var(--blue-500); outline-offset: 2px; }
+.ai-chat[data-chips~="v1"] .ai-chip:focus-visible::before { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .ai-chat[data-chips~="v1"] .ai-chip, .ai-chat[data-chips~="v1"] .ai-chip::before { transition: none; animation: none; }
+}

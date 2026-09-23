@@ -1,0 +1,339 @@
+/* =====================================================================
+   COMPONENTS — спільні компоненти для всіх екранів
+   ===================================================================== */
+
+/* ---------- Заголовок секції (PromoHeader) ---------- */
+.section-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-12);
+}
+.section-head__icon { flex: none; width: 32px; height: 32px; margin: 4px 0; }
+.section-head__text {
+  flex: 1;
+  min-width: 0;
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+}
+.section-head__title {
+  font-size: var(--fs-subtitle-md);
+  line-height: var(--lh-subtitle-md);
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.section-head__subtitle {
+  font-size: var(--fs-caption-sm);
+  line-height: 1.15;
+  font-weight: var(--fw-medium);
+  color: var(--text-tertiary);
+}
+
+/* Кнопка «›» (more-button) */
+.more-btn {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin: 4px 0;
+  padding: 4px;
+  border-radius: var(--radius-8);
+  background: var(--black-4);
+  box-shadow: var(--shadow-outline);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.more-btn img { width: 24px; height: 24px; }
+
+/* ---------- Біла картка-секція ---------- */
+.card-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-16);
+  border-radius: var(--radius-24);
+  background: var(--white);
+  box-shadow: var(--shadow-outline);
+  overflow: hidden;
+}
+
+/* ---------- Ціна ---------- */
+.price-block { display: flex; flex-direction: column; gap: var(--space-4); }
+.price-block__discount { display: flex; align-items: center; gap: var(--space-4); }
+.price-old {
+  font-size: var(--fs-caption-sm);
+  line-height: 1.1;
+  color: var(--text-tertiary);
+  text-decoration: line-through;
+  text-decoration-color: var(--black-38);
+}
+.discount-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-4);
+  background: var(--brand-700);
+  color: var(--white);
+  font-size: var(--fs-caption-sm);
+  line-height: 16px;
+  font-weight: var(--fw-bold);
+}
+.price {
+  font-size: var(--fs-body-md);
+  line-height: 1.1;
+  font-weight: var(--fw-bold);
+  white-space: nowrap;
+}
+.weight {
+  font-size: var(--fs-caption-sm);
+  line-height: 1.3;
+  font-weight: var(--fw-semibold);
+  color: var(--ink-100);
+}
+/* Бонус «+5 ⓑ» у «Купуйте вигідніше» */
+.bonus-chip {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 2px 0 4px;
+  border-radius: var(--radius-4);
+  background: rgba(120, 30, 200, 0.08);
+  color: var(--violet-600);
+  font-size: var(--fs-caption-sm);
+  line-height: 16px;
+  font-weight: var(--fw-semibold);
+}
+.bonus-chip img { width: 16px; height: 16px; }
+
+/* ---------- Сердечко «Улюблене» ---------- */
+.like-btn { width: 24px; height: 24px; }
+.like-btn img { width: 100%; height: 100%; }
+.like-btn .like-btn__on { display: none; }
+.like-btn[aria-pressed="true"] .like-btn__on { display: block; }
+.like-btn[aria-pressed="true"] .like-btn__off { display: none; }
+
+/* ---------- Картка товару (маленька, 96px) ---------- */
+.product-row { gap: var(--space-8); align-items: stretch; }
+.product-card {
+  flex: none;
+  width: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  text-align: left;
+  cursor: pointer;
+}
+.product-card__media { position: relative; width: 96px; height: 98px; }
+.product-card__img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-8); }
+.product-card__media .qty { position: absolute; left: 0; right: 0; bottom: 0; }
+.product-card .qty__add { border-color: var(--blue-700); }
+.product-card__media .like-btn { position: absolute; right: 0; top: 0; }
+.product-card__badge { position: absolute; left: 0; top: 0; width: 32px; height: 32px; }
+.product-card__content { display: flex; flex-direction: column; gap: var(--space-6); }
+.product-card__name {
+  font-size: var(--fs-caption-sm);
+  line-height: 1.16;
+  color: var(--text-primary);
+}
+
+/* ---------- Кількість: «+» → степер «− N шт +» ---------- */
+.qty { display: flex; justify-content: flex-end; }
+.qty__add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+  border: 2px solid var(--blue-500);
+  border-radius: var(--radius-8);
+  background: var(--white);
+}
+.qty__add img { width: 20px; height: 20px; }
+.qty__stepper { display: none; }
+.qty.has-qty .qty__add { display: none; }
+.qty.has-qty .qty__stepper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 32px;
+  border-radius: var(--radius-8);
+  background: var(--blue-500);
+  color: var(--white);
+}
+.qty__stepper button {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  color: var(--white);
+  font-size: 20px;
+  line-height: 1;
+  font-weight: var(--fw-semibold);
+}
+.qty__stepper output {
+  flex: 1;
+  text-align: center;
+  font-size: var(--fs-body-sm);
+  line-height: var(--lh-body-sm);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+/* ---------- Таймслот доставки (каталог, кошик) ---------- */
+.timeslot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--white);
+  border-radius: var(--radius-8);
+  background: var(--blue-50);
+  box-shadow: var(--shadow-tile);
+}
+.timeslot__type { display: flex; align-items: center; height: 40px; padding-left: var(--space-8); }
+.timeslot__type img { width: 24px; height: 24px; }
+.timeslot__divider { width: 1px; height: 24px; margin: 0 2px; border-radius: 1px; background: var(--blue-100); }
+.timeslot__time {
+  padding: 6px var(--space-8);
+  font-size: var(--fs-caption-sm);
+  line-height: 1.2;
+  font-weight: var(--fw-semibold);
+  color: var(--blue-500);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.express {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: 44px;
+  padding-right: var(--space-12);
+  border-top: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: var(--radius-4);
+  background: var(--blue-50);
+  box-shadow: var(--shadow-outline);
+  cursor: pointer;
+}
+.express__icon { width: 40px; height: 40px; margin: 2px 0 2px 8px; flex: none; }
+.express__text {
+  flex: 1;
+  font-size: var(--fs-caption-sm);
+  line-height: 1.2;
+  font-weight: var(--fw-semibold);
+  color: rgba(32, 33, 36, 0.87);
+}
+.express__text em { font-style: normal; color: var(--blue-500); }
+
+/* Перемикач (Toggle 40×24) */
+.switch {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 24px;
+  margin: 0;
+  border-radius: 12px;
+  background: rgba(32, 33, 36, 0.38);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s;
+}
+.switch:checked { background: var(--blue-500); }
+.switch:checked::after { transform: translateX(16px); }
+
+
+/* ---------- Кнопки (кошик, чекаут, подяка) ---------- */
+.btn-outline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  height: 48px;
+  margin-top: var(--space-8);
+  border: 1px solid var(--blue-500);
+  border-radius: var(--radius-24);
+  background: var(--white);
+  color: var(--blue-500);
+  font-size: var(--fs-body-md);
+  line-height: 1.4;
+  font-weight: var(--fw-semibold);
+}
+.btn-outline span { font-size: 24px; line-height: 1; font-weight: var(--fw-regular); }
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  height: 48px;
+  padding: 10px var(--space-24);
+  border-radius: var(--radius-24);
+  background: #1b47c8;
+  color: var(--white);
+  font-size: var(--fs-body-md);
+  line-height: 1.4;
+  font-weight: var(--fw-semibold);
+}
+
+/* ---------- Сіра іконка ----------
+   Додайте клас icon-grey до <img>, і іконка стане сірою, як у таб-барі,
+   хоч би якого кольору був файл. Колір — --icon-filter-grey у tokens.css. */
+.icon-grey { filter: var(--icon-filter-grey); }
+
+/* ---------- Плашка кошика (Figma 6058:6406 / 861:4027) ----------
+   Синя капсула «іконка + кількість + сума». Видно, коли в кошику щось є
+   (data-cart-visible); лічильник і суму оновлює Cart.render().
+   Де стоїть — задає екран: .ai-cart у чаті, .pdp-cart на картці товару. */
+.cart-pill {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  height: 40px;
+  padding: 0 var(--space-16);
+  border-radius: 100px;
+  background: var(--cart-pill-bg);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+  font-size: var(--fs-body-md);
+  line-height: 1.4;
+  font-weight: var(--fw-semibold);
+  color: var(--white);
+  white-space: nowrap;
+  transition: opacity 0.2s ease, transform 0.12s ease, display 0.2s allow-discrete;
+}
+.cart-pill[hidden] { display: none !important; opacity: 0; }
+@starting-style { .cart-pill:not([hidden]) { opacity: 0; } }
+.cart-pill:active { transform: scale(0.96); }
+.cart-pill__icon { position: relative; width: 24px; height: 24px; flex: none; }
+.cart-pill__icon img { position: absolute; inset: 2px; width: 20px; height: 20px; }
+.cart-pill__count {
+  position: absolute;
+  left: 12px;
+  top: -10px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border: 1.5px solid var(--cart-pill-bg);
+  border-radius: 100px;
+  background: var(--white);
+  font-size: 11px;
+  line-height: 13px;
+  font-weight: var(--fw-semibold);
+  text-align: center;
+  color: var(--cart-pill-bg);
+}
+@media (prefers-reduced-motion: reduce) { .cart-pill { transition: none; } }

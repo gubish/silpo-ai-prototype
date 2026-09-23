@@ -1,0 +1,31 @@
+/* =====================================================================
+   ПОДЯКА (Figma: 5945:14543)
+   ===================================================================== */
+
+#thankyou { display: flex; flex-direction: column; }
+
+.ty-hero { flex: 1; display: flex; align-items: flex-start; justify-content: center; padding-top: 22px; min-height: 290px; }
+.ty-hero img { width: 252px; height: 252px; }
+
+.ty-sheet {
+  display: flex;
+  flex-direction: column;
+  padding: 20px var(--space-16) var(--home-indicator-h);
+  border-radius: var(--radius-24) var(--radius-24) 0 0;
+  background: var(--white);
+}
+.ty-title { font-size: var(--fs-subtitle-md); line-height: 1.2; font-weight: var(--fw-semibold); color: var(--ink-100); }
+
+.ty-rows { margin: 0; }
+.ty-row { display: flex; gap: var(--space-12); padding: var(--space-16) 0; border-bottom: 1px solid #e3e3ea; }
+.ty-row:last-child { border-bottom: 0; padding-bottom: var(--space-24); }
+.ty-row__icon { flex: none; display: flex; padding: var(--space-8); border-radius: var(--radius-8); background: #f2f4f9; }
+.ty-row__icon img { width: 24px; height: 24px; }
+.ty-row > div { display: flex; flex-direction: column; gap: var(--space-4); justify-content: center; font-size: var(--fs-body-sm); line-height: 1.2; }
+.ty-row dt { color: rgba(32, 33, 36, 0.87); }
+.ty-row dd { margin: 0; font-weight: var(--fw-semibold); color: var(--ink-100); }
+.ty-row__note { font-size: var(--fs-caption-sm); line-height: 1.2; color: rgba(32, 33, 36, 0.6); }
+
+.ty-actions { display: flex; flex-direction: column; gap: var(--space-8); padding-bottom: var(--space-8); }
+.ty-actions .btn-primary img { width: 24px; height: 24px; }
+.ty-ghost { height: 48px; font-size: var(--fs-body-md); line-height: 1.4; font-weight: var(--fw-semibold); color: var(--controls-700); }

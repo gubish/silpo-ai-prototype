@@ -1,0 +1,58 @@
+/* =====================================================================
+   ОСТРІВЕЦЬ — ЕКСПЕРИМЕНТ ІЗ ТЕМАМИ (js/mg-island.js, гілка A)
+   Базова (світла) — css/mg-island.css. Тут:
+     темна  — html[data-island-theme="dark"]
+     скло   — html[data-island-glass]: напівпрозора матова поверхня, що розмиває
+              й підсилює кольори під собою, тонка світла окантовка й відблиск згори.
+              Працює і зі світлою, і з темною темою.
+   Перемикач «Острівець: Світлий · Темний | Скло» — поза телефоном.
+   ===================================================================== */
+
+/* ---------- Темна ---------- */
+[data-island-theme="dark"] .mg-island__surface,
+[data-island-theme="dark"] .mg-island__close {
+  background: #1f2129;
+  box-shadow: 0 10px 30px rgba(10, 12, 20, 0.35), 0 1px 4px rgba(10, 12, 20, 0.2);
+}
+[data-island-theme="dark"] .mg-island__text { color: rgba(255, 255, 255, 0.92); }
+[data-island-theme="dark"] .mg-island__close img { filter: invert(1); opacity: 0.8; }
+
+/* ---------- Скло ---------- */
+[data-island-glass] .mg-island__surface,
+[data-island-glass] .mg-island__close {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.38));
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  backdrop-filter: blur(18px) saturate(180%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.65),   /* окантовка */
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),    /* світло по верхньому краю */
+    inset 0 -8px 16px rgba(255, 255, 255, 0.18), /* «товщина» скла знизу */
+    0 10px 32px rgba(20, 30, 60, 0.18);
+}
+/* відблиск: мʼяка пляма світла зверху зліва */
+[data-island-glass] .mg-island__surface::before,
+[data-island-glass] .mg-island__close::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(120% 90% at 18% -10%, rgba(255, 255, 255, 0.55), transparent 55%);
+  pointer-events: none;
+}
+[data-island-glass] .mg-island__text,
+[data-island-glass] .mg-island__close img { position: relative; } /* над відблиском */
+
+/* скло + темна */
+[data-island-glass][data-island-theme="dark"] .mg-island__surface,
+[data-island-glass][data-island-theme="dark"] .mg-island__close {
+  background: linear-gradient(135deg, rgba(44, 48, 62, 0.72), rgba(18, 20, 28, 0.52));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    inset 0 1px 1px rgba(255, 255, 255, 0.3),
+    inset 0 -8px 16px rgba(255, 255, 255, 0.04),
+    0 10px 32px rgba(10, 12, 20, 0.35);
+}
+[data-island-glass][data-island-theme="dark"] .mg-island__surface::before,
+[data-island-glass][data-island-theme="dark"] .mg-island__close::before {
+  background: radial-gradient(120% 90% at 18% -10%, rgba(255, 255, 255, 0.18), transparent 55%);
+}

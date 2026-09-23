@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Сільпо — прототип</title>
+
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/screens/home.css">
+  <link rel="stylesheet" href="css/screens/catalog.css">
+  <link rel="stylesheet" href="css/screens/listing.css">
+  <link rel="stylesheet" href="css/screens/search.css">
+  <link rel="stylesheet" href="css/screens/pdp.css">
+  <link rel="stylesheet" href="css/screens/cart.css">
+  <link rel="stylesheet" href="css/screens/checkout.css">
+  <link rel="stylesheet" href="css/screens/thankyou.css">
+  <link rel="stylesheet" href="css/ai-chat.css">
+  <link rel="stylesheet" href="css/ai-chips-v1.css">
+  <link rel="stylesheet" href="css/ai-chips-v2.css">
+  <link rel="stylesheet" href="css/keyboard.css">
+  <link rel="stylesheet" href="css/mg-island.css">
+  <link rel="stylesheet" href="css/mg-island-themes.css">
+  <!-- гілки дизайну: стилі гілки B (діють лише з [data-branch="b"]) — js/branches.js -->
+  <link rel="stylesheet" href="css/branches/b.css">
+  <link rel="stylesheet" href="css/branches/b-quickview.css">
+  <link rel="stylesheet" href="css/branches/b-search.css">
+  <link rel="stylesheet" href="css/branches/b-mg.css">
+  <link rel="stylesheet" href="css/branches/b-scan.css">
+</head>
+<body>
+
+  <!-- Фільтр для сірих іконок-<img> (клас icon-grey, css/components.css).
+       1) робить іконку непрозорою (щоб прозорість із файлу не множилась),
+       2) фарбує в #202124 з прозорістю 72% — як іконки таб-бару.
+       Колір: три числа в останньому рядку матриці = R/G/B ÷ 255, 0.72 — прозорість. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <filter id="icon-grey" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 100 0"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.1255  0 0 0 0 0.1294  0 0 0 0 0.1412  0 0 0 0.72 0"/>
+    </filter>
+  </svg>
+
+  <!-- Поза телефоном: почати прототип заново (js/app.js) -->
+  <button class="restart-btn" type="button" data-restart>
+    <img src="assets/icons/sync.svg" alt="">На початок
+  </button>
+  <!-- Поза телефоном: перемикач гілок дизайну A / B (кнопки малює js/branches.js) -->
+  <div class="chips-toggle branch-toggle" role="group" aria-label="Гілка дизайну">
+    <span class="chips-toggle__label">Дизайн</span>
+  </div>
+  <!-- Поза телефоном: перемикач версій дизайну тегів чату (кнопки малює js/ai-chat.js) -->
+  <div class="chips-toggle" role="group" aria-label="Версія тегів чату">
+    <span class="chips-toggle__label">Теги</span>
+  </div>
+
+  <div class="phone">
+
+    <!-- Статус-бар: один на весь застосунок; колір тла змінює js/app.js -->
+    <header class="statusbar" aria-hidden="true">
+      <div class="statusbar__inner">
+        <span class="statusbar__time">9:41</span>
+        <span class="statusbar__levels">
+          <img src="assets/system/signal.svg" alt="">
+          <img src="assets/system/wifi.svg" alt="">
+          <img src="assets/system/battery.svg" alt="">
+        </span>
+      </div>
+    </header>
+
+    <!-- Екрани. Вміст кожного малює js/screens/<id>.js -->
+    <main>
+      <section class="screen" id="home"     data-theme="lavender" aria-label="Головна"></section>
+      <section class="screen" id="catalog"  data-theme="lavender" aria-label="Каталог"></section>
+      <section class="screen" id="listing"                        aria-label="Лістинг"></section>
+      <section class="screen" id="search"                         aria-label="Пошук"></section>
+      <section class="screen" id="pdp"                            aria-label="Картка товару"></section>
+      <section class="screen" id="cart"                           aria-label="Кошик"></section>
+      <section class="screen" id="checkout"                       aria-label="Чекаут"></section>
+      <section class="screen" id="thankyou" data-theme="lavender" aria-label="Подяка"></section>
+    </main>
+
+    <!-- Плаваючі кнопки (видно тільки на головній) -->
+    <div class="fab-stack">
+      <!-- QR-код угорі (лише на головній), грибочок — під ним -->
+      <button class="qr-fab" type="button" aria-label="QR-код">
+        <img src="assets/icons/qr-button.png" alt="">
+      </button>
+      <!-- грибочок малює js/ai-assistant.js (канваси настроїв) -->
+      <div class="ai-fab" role="button" tabindex="0" aria-label="Відкрити чат з ШІ-помічником"></div>
+    </div>
+  </div>
+
+  <!-- Дані та логіка -->
+  <script src="js/data.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/screens/home.js"></script>
+  <script src="js/screens/catalog.js"></script>
+  <script src="js/screens/listing.js"></script>
+  <script src="js/screens/search.js"></script>
+  <script src="js/screens/pdp.js"></script>
+  <script src="js/screens/cart.js"></script>
+  <script src="js/screens/checkout.js"></script>
+  <script src="js/screens/thankyou.js"></script>
+  <script src="js/branches.js"></script>
+  <script src="js/branches/b.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/branches/b-quickview.js"></script>
+  <script src="js/keyboard.js"></script>
+  <script src="js/ai-chat.js"></script>
+  <script src="js/branches/b-chat.js"></script>
+  <script src="js/branches/b-mg.js"></script>
+  <script src="js/branches/b-search.js"></script>
+  <script src="js/branches/b-scan.js"></script>
+
+  <!-- AI-асистент (Rive, офлайн) -->
+  <script src="vendor/rive.js"></script>
+  <script src="vendor/rive-wasm.js"></script>
+  <script src="vendor/mushroom-riv.js"></script>
+  <script src="js/ai-assistant.js"></script>
+  <script src="js/mg-island.js"></script>
+</body>
+</html>

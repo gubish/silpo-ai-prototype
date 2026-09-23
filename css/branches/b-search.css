@@ -1,0 +1,40 @@
+/* =====================================================================
+   ГІЛКА B — підказки пошуку під час набору (js/branches/b-search.js)
+   Компактні рядки по 44px, як в Amazon: вміщуються над клавіатурою.
+   ===================================================================== */
+
+.sg { margin: 0; padding: var(--space-4) var(--space-16) var(--space-16); list-style: none; }
+.sg-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: 44px;
+  border-bottom: 1px solid var(--ink-8);
+  cursor: pointer;
+}
+.sg-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-8) 0;
+  font-size: var(--fs-body-md);
+  line-height: 1.25;
+  color: var(--ink-100);
+  text-align: left;
+}
+.sg-row__main > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sg-row__main b { font-weight: var(--fw-semibold); }
+.sg-row__icon { width: 24px; height: 24px; flex: none; }
+.sg-row__thumb { width: 28px; height: 28px; flex: none; border-radius: 6px; object-fit: cover; }
+.sg-row__hint { color: var(--ink-72); }
+.sg-row__side { width: 24px; height: 24px; flex: none; }
+.sg-row__side img { width: 24px; height: 24px; }
+.sg-row .qty { flex: none; }
+.sg-row .qty.has-qty { width: 98px; }
+.sg-row:active { background: var(--blue-50); }
+
+/* наміри від Машрума — з аватаркою, жирним, як підказки Алекси в Amazon */
+.sg-row__ai { width: 28px; height: 28px; flex: none; border-radius: 50%; background: #fff6cc; object-fit: contain; padding: 2px; }
+.sg-row--ai .sg-row__main b { font-weight: var(--fw-semibold); color: var(--ink-100); }

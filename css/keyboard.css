@@ -1,0 +1,75 @@
+/* =====================================================================
+   iOS-КЛАВІАТУРА — макет системної клавіатури iPhone (світла тема).
+   Виїжджає знизу рамки телефона, коли фокус у полі з клавіатурою.
+   Розкладка — DATA.keyboard, логіка — js/keyboard.js.
+   ===================================================================== */
+
+.kb {
+  --kw: calc((100cqw - 6px - 11 * 5px) / 12); /* ширина літери: 12 у першому ряду */
+  container-type: inline-size;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 95; /* над чатом (90), під статус-баром (100) */
+  height: var(--kb-h);
+  padding-top: var(--space-8);
+  background: var(--kb-bg);
+  font-family: var(--font-system);
+  color: #000;
+  user-select: none;
+  -webkit-user-select: none;
+  transform: translateY(100%);
+  visibility: hidden;
+  transition: transform 0.25s ease, visibility 0s linear 0.25s;
+}
+.kb.is-open { transform: none; visibility: visible; transition: transform 0.25s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .kb, .kb.is-open { transition: none; }
+}
+
+.kb__rows { display: flex; flex-direction: column; gap: 11px; }
+.kb__row { display: flex; justify-content: center; gap: 5px; padding: 0 3px; }
+.kb__row--3 { justify-content: space-between; }
+.kb__group { display: flex; gap: 5px; }
+
+.kb__key {
+  flex: 0 0 var(--kw);
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  background: var(--kb-key);
+  box-shadow: var(--kb-key-shadow);
+  font-size: 22px;
+  line-height: 1;
+  color: #000;
+  touch-action: manipulation;
+}
+.kb__key:active { background: var(--kb-key-special); }
+.kb__key img { width: 24px; height: 24px; }
+
+.kb__key--special { flex-basis: 42px; background: var(--kb-key-special); }
+.kb__key--special:active { background: var(--kb-key); }
+.kb__key--shift[aria-pressed="true"] { background: var(--kb-key); }
+.kb__key--label { font-size: 16px; }
+.kb__key--mode { flex-basis: 44px; }
+.kb__key--emoji { flex-basis: 44px; }
+.kb__key--space { flex: 1 1 auto; font-size: 16px; color: #000; }
+.kb__key--send { flex-basis: 92px; font-size: 16px; }
+.kb__key--send:not(:disabled) { background: var(--kb-send); color: var(--white); }
+.kb__key--send:disabled { background: var(--kb-key-special); color: rgba(0, 0, 0, 0.3); cursor: default; }
+
+/* Рядок під клавішами: глобус і мікрофон */
+.kb__bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 14px 22px 0;
+}
+.kb__bar img { width: 26px; height: 26px; }
+
+/* Поки відкрита клавіатура, чат стискається над нею */
+.ai-chat.has-keyboard { padding-bottom: var(--kb-h); }
+.ai-chat.has-keyboard .ai-chat__composer { padding-bottom: var(--space-12); }
+.ai-chat { transition-property: transform, opacity, display, padding-bottom; }

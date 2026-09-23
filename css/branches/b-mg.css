@@ -1,0 +1,81 @@
+/* =====================================================================
+   ГІЛКА B — «Помічник може допомогти» (js/branches/b-mg.js).
+   Жовтий брендований чип = дія через Машрума. Вигляд — як теги в самому
+   чаті: тут — версія 1 (css/ai-chips-v1.css), інші версії перемикаються
+   разом із тегами чату (напр. v2 — у css/ai-chips-v2.css, селектор .mg-chip).
+   Цей стиль — лише для дій МГ; звичайні фільтри й кнопки його не беруть.
+   ===================================================================== */
+
+.mg-block { display: flex; flex-direction: column; gap: var(--space-8); padding: var(--space-12) var(--space-16); }
+.mg-block__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-size: var(--fs-body-sm);
+  line-height: 1.3;
+  font-weight: var(--fw-semibold);
+  color: var(--ink-72);
+}
+.mg-block__avatar {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  padding: 2px;
+  border-radius: 50%;
+  background: #fff6cc;
+  object-fit: contain;
+}
+
+.mg-chips { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+/* на екранах — у рядок зі скролом, край до краю */
+.mg-block--row .mg-chips {
+  flex-wrap: nowrap;
+  margin: 0 calc(-1 * var(--space-16));
+  padding: 0 var(--space-16);
+}
+
+.mg-chip {
+  position: relative;
+  isolation: isolate;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: var(--space-4) var(--space-16);
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--fs-body-sm);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-body-sm);
+  color: var(--ai-chip-text);
+  white-space: nowrap;
+  transition: transform 0.15s ease;
+}
+.mg-chip::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse at 85% 0%, var(--ai-chip-glow), transparent 52%),
+    linear-gradient(110deg, var(--ai-chip-lime), var(--ai-chip-lemon), var(--ai-chip-lime));
+  background-size: 160% 180%;
+  background-position: 20% 35%;
+  opacity: 0.7;
+  animation: ai-chip-glow-v1 12s ease-in-out infinite alternate;
+}
+.mg-chip:active { transform: scale(0.97); }
+.mg-chip:focus { outline: none; }
+.mg-chip:focus-visible { outline: 2px solid var(--blue-500); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .mg-chip, .mg-chip::before { transition: none; animation: none; } }
+
+/* ---------- Де стоїть на екранах ---------- */
+/* пошук: під класичними підказками, відділений лінією */
+.sg + .mg-block { border-top: 1px solid var(--ink-8); margin: 0 var(--space-16); padding: var(--space-12) 0 var(--space-16); }
+/* картка товару й кошик — на білому/сірому тлі своїх секцій */
+#cart .mg-block { padding: var(--space-12) var(--space-16) 0; }
+/* головна: над блоком і так відступ від сервісів доставки — трохи щільніше */
+#home .mg-block { padding-top: var(--space-4); }

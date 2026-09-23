@@ -1,0 +1,87 @@
+/* =====================================================================
+   ГІЛКА B — віджет сканерів (js/branches/b-scan.js), радіальне меню
+   ===================================================================== */
+
+.scan-dial { position: relative; width: 64px; height: 64px; }
+.scan-dial:has(> .qr-fab[hidden]) { display: none; } /* QR видно лише на головній (js/app.js) — віджет теж */
+
+/* головна кнопка — помаранчева, як QR */
+[data-branch="b"] .scan-dial__main {
+  position: relative;
+  z-index: 2;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fe8522;
+  filter: drop-shadow(0 8px 18px rgba(240, 120, 20, 0.3));
+}
+[data-branch="b"] .scan-dial__main img { position: absolute; width: 30px; height: 30px; transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.2s ease; }
+.scan-dial__close { opacity: 0; transform: rotate(-90deg) scale(0.6); } /* біла іконка close-white.svg */
+.scan-dial.is-open .scan-dial__icon { opacity: 0; transform: rotate(90deg) scale(0.6); }
+.scan-dial.is-open .scan-dial__close { opacity: 1; transform: none; }
+
+/* три кнопки дуги: у спокої — сховані в центрі віджета */
+.scan-dial__item {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  transform: translate(-50%, -26px) scale(0.3); /* центр кола кнопки (52px) — у центрі віджета */
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.22s ease, opacity 0.15s ease;
+}
+.scan-dial__bubble {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 0 6px 18px rgba(20, 30, 60, 0.22);
+}
+.scan-dial__bubble img { width: 26px; height: 26px; }
+.scan-dial__label {
+  font-size: var(--fs-caption-sm);
+  line-height: 1.2;
+  font-weight: var(--fw-semibold);
+  color: var(--white);
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+/* розкрито: розлітаються по дузі, по черзі, з легкою пружиною */
+.scan-dial.is-open .scan-dial__item {
+  transform: translate(calc(-50% + var(--x)), calc(-26px + var(--y))) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+  transition:
+    transform 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--i) * 45ms),
+    opacity 0.2s ease calc(var(--i) * 45ms);
+}
+.scan-dial__item:active .scan-dial__bubble { transform: scale(0.94); }
+.scan-dial__item:focus-visible { outline: none; }
+.scan-dial__item:focus-visible .scan-dial__bubble { outline: 2px solid var(--blue-500); outline-offset: 2px; }
+
+/* затемнення під віджетом */
+.scan-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 49; /* під .fab-stack (50) */
+  background: rgba(15, 20, 35, 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.scan-scrim.is-open { opacity: 1; pointer-events: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scan-dial *, .scan-scrim { transition: none !important; }
+}

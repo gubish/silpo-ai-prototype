@@ -1,0 +1,302 @@
+/* =====================================================================
+   ЧАТ ШІ-ПОМІЧНИКА — мобільна версія з веб-«Сільпо» (Wellness/docs/cheese).
+   Повноекранний аркуш усередині рамки телефона, виїжджає знизу.
+   Відкривається тапом по грибочку на головній. Тексти — DATA.aiChat.
+   ===================================================================== */
+
+.ai-chat {
+  --ai-indent: 0px; /* додатковий відступ тегів і карток зліва (аватар тепер над повідомленням) */
+  position: absolute;
+  inset: 0;
+  z-index: 90; /* над екранами й FAB, під статус-баром (100) */
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--statusbar-h);
+  background: var(--white);
+  /* Виїзд знизу: [hidden] ставить display:none миттєво, тому display теж
+     анімується (allow-discrete), а @starting-style дає стартовий стан.
+     Браузери без підтримки просто покажуть чат одразу. */
+  transition: transform var(--ai-chat-speed) ease, opacity var(--ai-chat-speed) ease, display var(--ai-chat-speed) allow-discrete;
+}
+/* [hidden] у base.css має !important, тож перебиваємо лише для анімації */
+.ai-chat[hidden] {
+  display: none !important;
+  opacity: 0;
+  transform: translateY(100%);
+}
+@starting-style {
+  .ai-chat:not([hidden]) { opacity: 0; transform: translateY(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-chat { transition: none; }
+}
+/* показ / приховування без виїзду знизу — для переходу вбік до картки товару */
+.ai-chat.is-instant { transition: none !important; }
+
+/* ---------- Шапка ---------- */
+/* як шапка лістингу: «Назад», заголовок, дія праворуч */
+.ai-chat__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  flex-shrink: 0;
+  height: 56px;
+  padding: var(--space-8) var(--space-16);
+  border-bottom: 1px solid var(--black-8);
+}
+.ai-chat__title {
+  flex: 1 0 0;
+  min-width: 0;
+  font-size: 22px;
+  line-height: 26px;
+  font-weight: var(--fw-semibold);
+  color: var(--black-87);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ai-chat__icon { display: flex; flex-shrink: 0; }
+.ai-chat__icon img { width: 24px; height: 24px; }
+/* кнопки праворуч у шапці: «Новий чат» і «⋮» */
+.ai-chat__more { margin-left: var(--space-8); } /* + gap шапки = 16px між іконками */
+
+/* ---------- Меню «⋮» ---------- */
+.ai-chat__head { position: relative; }
+.ai-menu {
+  position: absolute;
+  top: calc(100% - var(--space-4));
+  right: var(--space-16);
+  z-index: 5;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-4) 0;
+  border-radius: var(--radius-12);
+  background: var(--white);
+  box-shadow: 0 8px 24px rgba(19, 19, 30, 0.16), 0 0 0 1px var(--black-8);
+  transform-origin: top right;
+  transition: opacity 0.15s ease, transform 0.15s ease, display 0.15s allow-discrete;
+}
+.ai-menu[hidden] { display: none !important; opacity: 0; transform: scale(0.96); }
+@starting-style { .ai-menu:not([hidden]) { opacity: 0; transform: scale(0.96); } }
+@media (prefers-reduced-motion: reduce) { .ai-menu { transition: none; } }
+.ai-menu__item {
+  padding: var(--space-12) var(--space-16);
+  text-align: left;
+  font-size: var(--fs-body-md);
+  line-height: var(--lh-body-md);
+  color: var(--black-87);
+}
+.ai-menu__item:active { background: var(--blue-50); }
+
+/* «Новий чат», поки розмову не почато */
+.ai-chat__icon:disabled { opacity: 0.4; cursor: default; }
+
+/* ---------- Стрічка повідомлень ---------- */
+.ai-chat__body {
+  flex: 1 0 0;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-16);
+}
+.ai-chat__body::-webkit-scrollbar { display: none; }
+.ai-chat__thread { display: flex; flex-direction: column; gap: 20px; }
+
+.ai-msg { display: flex; align-items: flex-end; gap: var(--space-8); }
+.ai-msg--user { justify-content: flex-end; }
+/* аватар маскота — над повідомленням, щоб бульбашка, теги й картки
+   займали всю ширину від лівого до правого відступу */
+.ai-msg--bot { flex-direction: column; align-items: flex-start; gap: var(--space-6); }
+.ai-msg__author { display: flex; align-items: center; gap: var(--space-8); }
+.ai-msg__avatar { width: 32px; height: 32px; flex-shrink: 0; }
+/* живий Rive-аватар: шари-канваси всередині (js/ai-assistant.js) */
+.ai-msg__avatar--live { position: relative; }
+.ai-msg__name {
+  font-size: var(--fs-caption-md);
+  line-height: var(--lh-caption-md);
+  font-weight: var(--fw-semibold);
+  color: var(--black-72);
+}
+.ai-bubble {
+  max-width: 82%;
+  padding: 10px 14px;
+  border-radius: var(--radius-16);
+  font-size: var(--fs-body-sm);
+  line-height: 1.4;
+  white-space: pre-line;
+}
+.ai-msg--bot .ai-bubble {
+  border-top-left-radius: var(--radius-4); /* «хвостик» до аватара зверху */
+  background: var(--additional-100);
+  color: var(--black-87);
+}
+/* ваші повідомлення — світло-блакитні: насичений синій лишаємо для дій
+   (кошик, «+», «Надіслати»), щоб повідомлення не виглядало кнопкою */
+.ai-msg--user .ai-bubble {
+  border-bottom-right-radius: var(--radius-4);
+  background: var(--ai-user-bubble);
+  color: var(--black-87);
+}
+/* «друкує…» — три крапки, поки помічник «думає» */
+.ai-bubble--typing { display: flex; gap: 4px; padding: 14px; }
+.ai-bubble--typing i {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--black-38);
+  animation: ai-typing 1s infinite ease-in-out;
+}
+.ai-bubble--typing i:nth-child(2) { animation-delay: 0.15s; }
+.ai-bubble--typing i:nth-child(3) { animation-delay: 0.3s; }
+@keyframes ai-typing { 0%, 60%, 100% { opacity: 0.3; } 30% { opacity: 1; } }
+
+/* ---------- Теги (стартові й наступних кроків) ----------
+   Дизайн тегів — окремими версіями: css/ai-chips-v1.css, css/ai-chips-v2.css…
+   Яка показується — DATA.aiChat.chipsVersion (атрибут data-chips на .ai-chat). */
+
+/* ---------- Поле вводу ---------- */
+.ai-chat__composer {
+  position: relative; /* стрілка ↓ кріпиться над полем вводу */
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  flex-shrink: 0;
+  padding: var(--space-12) var(--space-16) calc(var(--space-12) + var(--home-indicator-h));
+  border-top: 1px solid var(--black-8);
+}
+.ai-field {
+  flex: 1 0 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "camera input";
+  align-items: center;
+  column-gap: var(--space-8);
+  min-height: 40px;
+  padding: 0 var(--space-12) 0 var(--space-8);
+  border: 1px solid var(--black-8);
+  border-radius: 20px;
+  background: var(--white);
+  cursor: text;
+  transition: border-color 0.15s ease;
+}
+.ai-field:focus-within { border-color: var(--blue-500); }
+/* є текст — два рядки: текст зверху на всю ширину, кнопки внизу по кутах */
+.ai-field.is-filled {
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    "input  input  input"
+    "camera .      send";
+  row-gap: var(--space-4);
+  padding: var(--space-8) var(--space-8) var(--space-8) var(--space-8);
+}
+.ai-field__camera {
+  grid-area: camera;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+.ai-field__camera img { width: 24px; height: 24px; }
+.ai-field__camera:active { background: var(--black-4); }
+.ai-chat__input {
+  grid-area: input;
+  display: block;
+  min-width: 0;
+  height: 38px;
+  max-height: var(--ai-input-max-h); /* далі — прокрутка всередині поля */
+  padding: 7px 0;
+  border: 0;
+  outline: none;
+  background: none;
+  resize: none;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  font: inherit;
+  font-size: var(--fs-body-md);
+  line-height: 24px;
+  color: var(--black-87);
+}
+.ai-chat__input::-webkit-scrollbar { display: none; }
+/* з текстом: висоту ставить js (росте з текстом), рядок 24px */
+.ai-field.is-filled .ai-chat__input { padding: 0 var(--space-4); }
+.ai-chat__input::placeholder { color: rgba(19, 19, 30, 0.6); }
+/* «Надіслати» — лише коли є текст: кругла, стрілка вгору */
+.ai-chat__send {
+  grid-area: send;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--controls-700);
+}
+.ai-field.is-filled .ai-chat__send { display: flex; }
+.ai-chat__send img { width: 20px; height: 20px; }
+.ai-chat__send:active { transform: scale(0.94); }
+
+/* ---------- Картки товарів у відповіді (ті самі, що в лістингу) ---------- */
+.ai-products {
+  gap: var(--space-8);
+  padding-bottom: var(--space-4);
+  /* перша картка — на рівні бульбашки; скролиться до країв екрана */
+  padding-left: calc(var(--space-16) + var(--ai-indent));
+  scroll-padding-left: calc(var(--space-16) + var(--ai-indent));
+}
+.ai-products .plp-card { flex: 0 0 115px; } /* ширина як у сітці лістингу на 3 колонки */
+/* назва — максимум 2 рядки: рядок карток має висоту найвищої картки,
+   і одна довга назва лишала б порожнечу під усіма іншими */
+.ai-products .plp-card__name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+/* ---------- Невидимий запас під розмовою ----------
+   Висоту рахує js/ai-chat.js, щоб відповідь помічника ставала першою на екрані */
+.ai-chat__spacer { flex: none; margin-top: calc(-1 * var(--space-16)); /* без зайвого gap стрічки */ }
+
+/* ---------- Стрілка «до кінця розмови» ---------- */
+.ai-chat__down {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + var(--space-12));
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--black-8);
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 0 2px 8px rgba(19, 19, 30, 0.12);
+  transform: translateX(-50%);
+  transition: opacity 0.2s ease, display 0.2s allow-discrete;
+}
+.ai-chat__down img { width: 24px; height: 24px; }
+.ai-chat__down[hidden] { display: none !important; opacity: 0; }
+@starting-style { .ai-chat__down:not([hidden]) { opacity: 0; } }
+.ai-chat__down:active { transform: translateX(-50%) scale(0.94); }
+@media (prefers-reduced-motion: reduce) { .ai-chat__down { transition: none; } }
+
+/* ---------- Плашка кошика в чаті ----------
+   Сама плашка — .cart-pill у css/components.css; тут лише місце:
+   праворуч над полем вводу (їде разом із ним, коли виїжджає клавіатура). */
+.ai-cart {
+  position: absolute;
+  right: var(--space-16);
+  bottom: calc(100% + var(--space-12));
+  z-index: 2;
+}
+/* під плашкою не ховається кінець розмови. Запас — завжди, а не лише з товарами
+   в кошику: інакше, коли кошик порожніє, стрічка коротшає і прокрутка підсмикується */
+.ai-chat__body { padding-bottom: calc(var(--space-16) + 52px); }
+@media (prefers-reduced-motion: reduce) { .ai-cart { transition: none; } }

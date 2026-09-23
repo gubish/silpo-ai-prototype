@@ -1,0 +1,53 @@
+/* =====================================================================
+   ГІЛКА B — стилі. Підключені завжди, але діють лише в гілці B:
+   кожен селектор починайте з [data-branch="b"].
+   Приклади:
+     [data-branch="b"] { --blue-500: #0b7a4b; }          — змінити токен з css/tokens.css
+     [data-branch="b"] .product-card { border-radius: 16px; }
+   ===================================================================== */
+
+/* ---------- Машрум у таб-барі головної замість «Покупок» (js/branches/b.js) ----------
+   Без підпису: іконка займає місце і значка, і підпису. Канвас вищий за видиму
+   частину — зверху запас під «шапку», що гойдається, тож трохи виходить над таб-бар. */
+[data-branch="b"] .tabbar__item--ai { padding-top: 0; }
+/* бічні відступи таб-бару: «Головна» трохи правіше, Машрум трохи лівіше,
+   решта пунктів — порівну між ними (колонки однакові) */
+[data-branch="b"] .tabbar { padding-left: 8px; padding-right: 8px; }
+[data-branch="b"] .tabbar__item--ai .ai-fab {
+  position: absolute;
+  left: 50%;
+  bottom: -2px; /* ніжка — на рівні низу підписів сусідніх пунктів */
+  width: 40px;
+  height: 59px;
+  transform: translateX(-50%);
+  filter: none; /* тінь плаваючої кнопки тут зайва */
+}
+
+/* QR-кнопка на головній: плаваючого грибочка під нею немає, а в таб-барі
+   визирає шапка Машрума — тримаємо QR трохи вище */
+[data-branch="b"] .fab-stack { margin-bottom: 16px; }
+
+/* ---------- Лістинг: фільтр у шапці поруч із сортуванням (js/branches/b.js) ---------- */
+[data-branch="b"] .plp-appbar .plp-filter-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+[data-branch="b"] .plp-appbar .plp-filter-btn[aria-expanded="true"] { border-radius: var(--radius-8); box-shadow: none; }
+[data-branch="b"] #listing .plp-filter { padding: var(--space-8) var(--space-16) 0; }
+
+/* ---------- Таб-бар: легка тінь угору, щоб відокремити від контенту ---------- */
+[data-branch="b"] .tabbar { box-shadow: 0 -1px 0 var(--black-4), 0 -4px 16px rgba(20, 30, 60, 0.08); }
+
+
+/* ---------- Чат Машрума: зʼявляється одразу, без виїзду знизу ----------
+   (стартовий стан анімації = кінцевий; закриття лишається як було — css/ai-chat.css) */
+@starting-style {
+  [data-branch="b"] .ai-chat:not([hidden]) { opacity: 1; transform: none; }
+}
+
+/* ---------- Чат Машрума: без плашки кошика над полем вводу ---------- */
+[data-branch="b"] .ai-cart { display: none !important; }
+/* запас під плашку в кінці стрічки вже не потрібен */
+[data-branch="b"] .ai-chat__body { padding-bottom: var(--space-16); }
+/* таб-бар під полем вводу (js/branches/b.js): відступ під смужку «додому» тепер у таб-бару */
+[data-branch="b"] .ai-chat__composer { padding-bottom: var(--space-12); }
+[data-branch="b"] .ai-chat .tabbar { flex-shrink: 0; }
+/* виїхала клавіатура — таб-бар ховається, як в iOS */
+[data-branch="b"] .ai-chat.has-keyboard .tabbar { display: none; }

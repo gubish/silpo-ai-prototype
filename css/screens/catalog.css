@@ -1,0 +1,170 @@
+/* =====================================================================
+   КАТАЛОГ (Figma: 5945:14370)
+   ===================================================================== */
+
+/* ---------- Стікі-хедер: «‹» + логотип (z-index 10) ---------- */
+.cat-appbar {
+  position: sticky;
+  top: var(--statusbar-h); /* кріпиться під статус-баром */
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  padding: var(--space-8) var(--space-16);
+  background: var(--bg-lavender);
+}
+.cat-appbar__back { width: 24px; height: 24px; flex: none; }
+.cat-appbar__back img { width: 24px; height: 24px; }
+.cat-appbar__logo { width: 104px; height: 40px; margin: 0 auto; transform: translateX(-12px); }
+
+/* ---------- Адреса, таймслот, експрес ---------- */
+.cat-delivery { display: flex; flex-direction: column; gap: var(--space-8); padding: var(--space-16) var(--space-16) var(--space-8); }
+.cat-delivery__row { display: flex; align-items: center; gap: var(--space-8); }
+.cat-delivery__address { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.cat-delivery__address strong {
+  font-size: var(--fs-body-sm);
+  line-height: var(--lh-body-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-tertiary);
+}
+.cat-delivery__address span { font-size: var(--fs-caption-md); line-height: var(--lh-caption-md); color: var(--text-secondary); }
+
+/* ---------- Білі «листи» з секціями ---------- */
+.cat-sheets { display: flex; flex-direction: column; gap: var(--space-8); padding-bottom: var(--space-16); }
+.cat-sheet {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-24);
+  background: var(--white);
+}
+.cat-top { display: flex; flex-direction: column; gap: var(--space-16); padding: var(--space-16) var(--space-16) var(--space-8); }
+.cat-top .search-bar { width: 100%; flex: none; }
+
+.cat-promo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-12);
+  border-radius: var(--radius-12);
+  background: var(--blue-50);
+  text-align: left;
+}
+.cat-promo__title { flex: 1; font-size: var(--fs-body-md); line-height: var(--lh-body-md); font-weight: var(--fw-semibold); }
+.cat-promo__badges { width: 80px; height: 32px; }
+.cat-promo__arrow { width: 24px; height: 24px; }
+
+.cat-chips { gap: var(--space-8); padding: var(--space-8) var(--space-16); }
+.choice-chip {
+  flex: none;
+  padding: 7px var(--space-12);
+  border: 1px solid var(--black-8);
+  border-radius: 50px;
+  background: var(--white-60);
+  font-size: var(--fs-body-sm);
+  line-height: var(--lh-body-sm);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+.choice-chip[aria-pressed="true"] { border-color: var(--blue-500); background: var(--blue-100); color: var(--blue-500); }
+
+.cat-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: var(--space-16);
+  scroll-margin-top: calc(var(--statusbar-h) + 56px); /* щоб при переході секція не ховалась під стікі-хедером */
+}
+.cat-sheet:first-child .cat-section { padding-top: var(--space-8); }
+
+.cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-8); }
+.cat-tile {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  height: 109px;
+  border-radius: var(--radius-12);
+  background: var(--tile-bg);
+  overflow: hidden;
+  text-align: left;
+}
+.cat-tile__img { position: absolute; right: 0; top: 0; width: 109px; height: 109px; object-fit: cover; }
+.cat-tile__label {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: var(--space-8);
+}
+.cat-tile__label span {
+  padding: 1px var(--space-4);
+  border-radius: var(--radius-4);
+  background: var(--white);
+  font-size: var(--fs-body-sm);
+  line-height: 1.15;
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+.cat-tile__label span + span { margin-top: -2px; border-top-left-radius: 0; }
+
+/* ---------- Нижня панель з категоріями (стікі знизу) ---------- */
+.cat-bottom {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 0 var(--home-indicator-h);
+  border-radius: var(--radius-24) var(--radius-24) 0 0;
+  background: var(--white);
+  box-shadow: 0 -8px 24px rgba(35, 88, 209, 0.08);
+}
+.cat-bottom__grabber { align-self: center; width: 41px; height: 4px; border-radius: 4px; background: rgba(60, 60, 67, 0.3); }
+.cat-bottom__row { gap: var(--space-8); padding: 6px var(--space-16) var(--space-8); }
+.cat-bottom__search {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  background: var(--blue-50);
+}
+.cat-bottom__search img { width: 24px; height: 24px; }
+.cat-pill {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: 40px;
+  padding: var(--space-8) var(--space-12) var(--space-8) var(--space-8);
+  border-radius: var(--radius-24);
+  background: var(--blue-50);
+  font-size: var(--fs-body-md);
+  line-height: 1.4;
+  color: var(--ink-100);
+  white-space: nowrap;
+}
+.cat-pill__icon {
+  width: 24px;
+  height: 24px;
+  /* іконки категорій сині — неактивні робимо сірими */
+  filter: grayscale(1) brightness(0.45);
+  opacity: 0.8;
+}
+.cat-pill.is-active { background: var(--blue-100); color: var(--blue-500); font-weight: var(--fw-semibold); }
+.cat-pill.is-active .cat-pill__icon { filter: none; opacity: 1; }
+
+.cat-bottom__hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin: 0 var(--space-16);
+  padding: 2px 0;
+  font-size: var(--fs-caption-md);
+  line-height: 1.3;
+  color: var(--ink-72);
+}
+.cat-bottom__hint img { width: 20px; height: 20px; flex: none; }
+.cat-bottom__hint span { flex: 1; text-align: center; }

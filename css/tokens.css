@@ -1,0 +1,137 @@
+/* =====================================================================
+   DESIGN TOKENS — значення з Figma (файл «Shop», змінні Main/*, Font size/*…)
+   Міняйте кольори / шрифти / відступи ТУТ — вони застосуються всюди.
+   ===================================================================== */
+
+@font-face { font-family: "Silpo Text"; src: url("../assets/fonts/SilpoText-Regular.ttf") format("truetype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Silpo Text"; src: url("../assets/fonts/SilpoText-Medium.ttf") format("truetype"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Silpo Text"; src: url("../assets/fonts/SilpoText-SemiBold.ttf") format("truetype"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Silpo Text"; src: url("../assets/fonts/SilpoText-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Silpo Rounded"; src: url("../assets/fonts/SilpoRounded-Bold.ttf") format("truetype"); font-weight: 700; font-display: swap; }
+@font-face { font-family: "Silpo Rounded"; src: url("../assets/fonts/SilpoRounded-Black.ttf") format("truetype"); font-weight: 900; font-display: swap; }
+
+:root {
+  /* ---------- Кольори: Main/Black (#13131E з прозорістю) ---------- */
+  --black-100: #13131e;
+  --black-87: rgba(19, 19, 30, 0.87);
+  --black-72: rgba(19, 19, 30, 0.72);
+  --black-38: rgba(19, 19, 30, 0.38);
+  --black-8: rgba(19, 19, 30, 0.08);
+  --black-4: rgba(19, 19, 30, 0.04);
+
+  /* Black/* (#202124) — використовується в іконках і цінах */
+  --ink-100: #202124;
+  --ink-72: rgba(32, 33, 36, 0.72);
+  --ink-24: rgba(32, 33, 36, 0.24);
+  --ink-12: rgba(32, 33, 36, 0.12);
+  --ink-8: rgba(32, 33, 36, 0.08);
+
+  --white: #ffffff;
+  --white-60: rgba(255, 255, 255, 0.6);
+
+  /* ---------- Main/Blue ---------- */
+  --blue-50: #f6f8fd;
+  --blue-100: #eef2fc;   /* лавандове тло головної, каталогу, подяки */
+  --blue-200: #d3def5;
+  --blue-500: #2358d1;   /* основний синій (акценти, активний таб) */
+  --blue-700: #1135ba;   /* рамка кнопки «+» */
+  --controls-700: #2458d3;
+
+  /* ---------- Main/Brand (помаранчевий) ---------- */
+  --brand-100: #fff0e0;
+  --brand-200: #ffe1c1;  /* плитки сервісів доставки */
+  --brand-500: #ff8200;  /* бейджі «7 000 товарів» */
+  --brand-700: #ff5c00;  /* тег знижки «−15%» */
+
+  /* ---------- Інші ---------- */
+  --red-500: #ff0a3b;    /* бейдж сповіщень */
+  --error-700: #da291c;  /* лічильник кошика в таб-барі */
+  --violet-600: #781ec8;
+  --violet-400: #9e4de5;
+  --violet-text: #6c11bb;
+  --electric-violet-700: #850ee2;
+  --pink-200: #ffd8eb;   /* плитки LOKO / ресторани */
+  --additional-100: #f2f4f9; /* бульбашка відповіді ШІ-помічника */
+  --additional-300: #cecfd9; /* неактивна кнопка «Надіслати» в чаті */
+
+  /* ---------- Семантичні ---------- */
+  --bg-lavender: var(--blue-100);
+  --bg-white: var(--white);
+  --text-primary: var(--black-100);
+  --text-secondary: var(--black-72);
+  --text-tertiary: var(--black-87);
+  --accent: var(--blue-500);
+
+  /* ---------- Типографіка ---------- */
+  --font-text: "Silpo Text", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-rounded: "Silpo Rounded", var(--font-text);
+  --font-system: -apple-system, "SF Pro Text", "Helvetica Neue", sans-serif;
+
+  --fs-caption-xs: 10px;
+  --fs-caption-sm: 12px;  --lh-caption-sm: 16px;
+  --fs-caption-md: 13px;  --lh-caption-md: 17px;
+  --fs-body-sm: 14px;     --lh-body-sm: 18px;
+  --fs-body-md: 16px;     --lh-body-md: 22px;
+  --fs-subtitle-md: 20px; --lh-subtitle-md: 24px;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* ---------- Відступи (xxxs-2 … sm-16) ---------- */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+
+  /* ---------- Радіуси ---------- */
+  --radius-4: 4px;
+  --radius-8: 8px;
+  --radius-12: 12px;
+  --radius-16: 16px;
+  --radius-24: 24px;
+  --radius-pill: 80px;
+
+  /* ---------- Тіні (ефекти з Figma) ---------- */
+  --shadow-outline: 0 1px 0 0 rgba(0, 0, 0, 0.06);                                             /* «Тінь/Обведення» */
+  --shadow-tile: inset 0 -1px 0 0 rgba(0, 0, 0, 0.06), inset 0 1px 0 0 rgba(255, 255, 255, 0.7); /* «Тінь/Обʼєм плитки» */
+  --shadow-inner-light: inset 0 -1px 0 0 rgba(255, 255, 255, 0.7);                             /* «Inner shadow» */
+
+  /* ---------- Розміри каркаса ---------- */
+  --phone-w: 393px;
+  --phone-h: 844px;
+  --phone-radius: 44px;
+  --statusbar-h: 54px;
+  --tabbar-h: 48px;
+  --home-indicator-h: 20px;
+
+  /* ---------- Фарбування іконок-<img> ----------
+     Будь-яку SVG (чорну, напівпрозору, з currentColor) робить сірою, як
+     іконки таб-бару: #202124 з прозорістю 72%. Сам фільтр — <filter id="icon-grey">
+     на початку index.html (там же міняється колір). */
+  --icon-filter-grey: url(#icon-grey);
+
+  /* ---------- Чат ШІ-помічника ---------- */
+  --scrim: rgba(19, 19, 30, 0.4);
+  --ai-chat-speed: 0.28s;    /* швидкість виїзду чату */
+  --ai-user-bubble: var(--blue-200); /* бульбашка ваших повідомлень у чаті */
+  --ai-input-max-h: 120px;           /* поле вводу росте до 5 рядків, далі прокрутка */
+  --cart-pill-bg: #1b47c8;   /* плашка кошика в чаті (Figma Controls/700, node 6058:6406) */
+  /* теги швидких відповідей — кольори маскота */
+  --ai-chip-text: #60406e;   /* темно-сливовий текст */
+  --ai-chip-lime: #f3f7b0;   /* лимонно-лаймова заливка */
+  --ai-chip-lemon: #fff2a6;
+  --ai-chip-glow: #f2d5ed;   /* рожево-ліловий відблиск */
+
+  /* ---------- iOS-клавіатура (світла тема) ---------- */
+  --kb-h: 291px;             /* висота разом із рядком глобус / мікрофон */
+  --kb-bg: #d1d3d9;
+  --kb-key: #ffffff;
+  --kb-key-special: #abb0bc; /* Shift, стерти, 123 */
+  --kb-key-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+  --kb-send: #007aff;
+}
