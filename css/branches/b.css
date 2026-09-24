@@ -25,7 +25,7 @@
 
 /* QR-кнопка на головній: плаваючого грибочка під нею немає, а в таб-барі
    визирає шапка Машрума — тримаємо QR трохи вище */
-[data-branch="b"] .fab-stack { margin-bottom: 16px; }
+[data-branch="b"] .fab-stack { margin-bottom: 6px; }
 
 /* ---------- Лістинг: фільтр у шапці поруч із сортуванням (js/branches/b.js) ---------- */
 [data-branch="b"] .plp-appbar .plp-filter-btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }

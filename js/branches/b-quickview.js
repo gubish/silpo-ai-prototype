@@ -7,7 +7,8 @@
    «Усі деталі» — повна картка товару (#pdp), «У кошик» → степер «− N шт +».
    Закривається хрестиком, тапом повз картку або Esc.
    Тексти — DATA.quickView (js/branches/b.js), стилі — css/branches/b-quickview.css.
-   Товари в «Схожих товарах» і в чаті Машрума відкривають повну картку (#pdp).
+   Товари в чаті Машрума — теж картка поверх чату («Усі деталі» → повна, «Назад» — у розмову).
+   Товари в «Схожих товарах» відкривають повну картку (#pdp).
    ===================================================================== */
 
 const QuickView = {
@@ -34,7 +35,12 @@ const QuickView = {
     el.addEventListener('click', e => { if (!e.target.closest('.qv-card, .qv__close') && !this.dragged) this.close(); });
     el.addEventListener('click', e => {
       const more = e.target.closest('[data-qv-details]');
-      if (more) { this.close(); App.go('pdp', more.dataset.qvDetails); }
+      if (more) {
+        this.close();
+        // відкрили з чату — повна картка поверх чату, «Назад» поверне в розмову
+        const chatOpen = typeof AiChat !== 'undefined' && AiChat.el && !AiChat.el.hidden;
+        if (chatOpen) AiChat.pushTo('pdp', more.dataset.qvDetails); else App.go('pdp', more.dataset.qvDetails);
+      }
       // тап по сусідній картці — зробити її поточною
       const card = e.target.closest('.qv-card');
       if (card && !card.classList.contains('is-current') && !this.dragged) {
@@ -191,8 +197,8 @@ if (Branch.current === 'b') {
      (фаза захоплення — до обробника в js/app.js), і замість переходу відкриваємо картку. */
   document.addEventListener('click', e => {
     const link = e.target.closest('[data-go="pdp"][data-param]');
-    // «Схожі товари» на повній картці й товари в чаті — повна картка, не оверлей
-    const skip = !link || e.target.closest('[data-add], [data-remove], [data-like], .ai-chat, .pdp-similar, .qv');
+    // «Схожі товари» на повній картці — повна картка, не оверлей
+    const skip = !link || e.target.closest('[data-add], [data-remove], [data-like], .pdp-similar, .qv');
     QuickView.pending = skip ? null : { id: link.dataset.param, link };
   }, true);
 
@@ -204,5 +210,18 @@ if (Branch.current === 'b') {
     return go(id, param, opts);
   };
 
-  document.addEventListener('DOMContentLoaded', () => QuickView.init());
+  document.addEventListener('DOMContentLoaded', () => {
+    QuickView.init();
+    /* Чат сам веде з картки товару на повну картку (AiChat.pushTo) — у гілці B
+       тап по товару в чаті теж відкриває картку як у Amazon, поверх чату;
+       сусіди — інші товари тієї ж каруселі в розмові */
+    if (typeof AiChat === 'undefined') return;
+    const push = AiChat.pushTo.bind(AiChat);
+    AiChat.pushTo = function (id, param) {
+      const p = QuickView.pending;
+      QuickView.pending = null;
+      if (id === 'pdp' && p && p.id === param) return QuickView.open(param, p.link);
+      return push(id, param);
+    };
+  });
 }
