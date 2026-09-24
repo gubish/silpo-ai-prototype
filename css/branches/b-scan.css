@@ -54,7 +54,8 @@
   line-height: 1.2;
   font-weight: var(--fw-semibold);
   color: var(--white);
-  white-space: nowrap;
+  width: 80px;           /* довгі підписи («Власний рахунок») — у два рядки, не за край екрана */
+  text-align: center;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 /* розкрито: розлітаються по дузі, по черзі, з легкою пружиною */

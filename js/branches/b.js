@@ -194,8 +194,8 @@ Branch.define('b', {
     scanDial: {
       label: 'Сканери',
       items: [
-        { id: 'qr',    label: 'QR-код',     icon: 'assets/icons/qr-code.svg' },
-        { id: 'price', label: 'Сканер цін', icon: 'assets/icons/barcode.svg' },
+        { id: 'qr',    label: 'Власний рахунок', icon: 'assets/icons/qr-code.svg' },
+        { id: 'price', label: 'Перевірка цін', icon: 'assets/icons/barcode.svg' },
         { id: 'self',  label: 'Вільнокаса', icon: 'assets/icons/self-checkout.svg' },
       ],
     },
