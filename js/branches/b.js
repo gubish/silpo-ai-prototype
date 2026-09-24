@@ -18,7 +18,7 @@
    ===================================================================== */
 
 /* Основні екрани — щоб гілка могла їх доповнити, а не переписувати */
-const BaseScreens = { home: Screens.home, catalog: Screens.catalog, listing: Screens.listing, pdp: Screens.pdp, cart: Screens.cart };
+const BaseScreens = { home: Screens.home, catalog: Screens.catalog, listing: Screens.listing, pdp: Screens.pdp, cart: Screens.cart, checkout: Screens.checkout };
 
 /** У таб-барі екрана — Машрум замість «Покупок» (без підпису, більший).
     fab — готовий грибочок; без нього створюється новий (Rive малює js/ai-assistant.js). */
@@ -189,6 +189,11 @@ Branch.define('b', {
         { label: 'Чогось не вистачає?', opener: 'Чогось не вистачає?' },
         { label: 'Що з цього приготувати?', opener: 'Що з цього приготувати?' },
       ],
+      checkout: [
+        { label: 'Коли привезуть?', opener: 'Коли привезуть?' },
+        { label: 'Змінити доставку', opener: 'Змінити доставку' },
+        { label: 'Що з пакуванням?', opener: 'Що з пакуванням?' },
+      ],
     },
     /* Віджет сканерів на місці QR (js/branches/b-scan.js): тап — три кнопки дугою. */
     scanDial: {
@@ -299,6 +304,12 @@ Branch.define('b', {
       // «Помічник може допомогти» — одразу під назвою товару
       root.querySelector('.pdp-head').insertAdjacentHTML('afterend', MG.block(DATA.mg.pdp, { row: true }));
     },
+
+    /* Чекаут: «Помічник може допомогти» в кінці, над панеллю оплати — підтримка, нічого не продаємо */
+    checkout: Object.assign(function (root, param) {
+      BaseScreens.checkout(root, param);
+      root.querySelector('.co-check').parentElement.insertAdjacentHTML('beforeend', MG.block(DATA.mg.checkout, { row: true }));
+    }, { update() { BaseScreens.checkout.update(); } }),
 
     /* Кошик: «Помічник може допомогти» над списком товарів; порожній кошик — блоку немає */
     cart: Object.assign(function (root, param) {

@@ -79,3 +79,5 @@
 #cart .mg-block { padding: var(--space-12) var(--space-16) 0; }
 /* головна: над блоком і так відступ від сервісів доставки — трохи щільніше */
 #home .mg-block { padding-top: var(--space-4); }
+/* чекаут: блок у кінці контенту, над панеллю оплати */
+#checkout .mg-block { padding: var(--space-8) var(--space-16) var(--space-16); }
