@@ -73,11 +73,13 @@ const Branch = {
     this.renderQr();
   },
 
+  qrVersion: 2, // змінили QR-коди (tools/make-qr.py) — збільште на 1
+
   /** QR-код поза телефоном: онлайн-версія поточної гілки (assets/qr/branch-<id>.svg — tools/make-qr.py) */
   renderQr() {
     const card = document.querySelector('.qr-card');
     if (!card) return;
-    card.querySelector('.qr-card__code').src = `assets/qr/branch-${this.current}.svg`;
+    card.querySelector('.qr-card__code').src = `assets/qr/branch-${this.current}.svg?v=${this.qrVersion}`; // ?v — щоб браузер не показав старий QR із кешу
     card.querySelector('.qr-card__hint').textContent = `Гілка ${this.list[this.current].label} · наведіть камеру`;
   },
 
