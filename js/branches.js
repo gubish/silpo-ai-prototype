@@ -31,7 +31,12 @@ const Branch = {
   current: (() => {
     const fromUrl = new URLSearchParams(location.search).get('branch');
     let saved = null;
-    try { saved = localStorage.getItem('silpo-branch'); } catch (e) { /* приватний режим */ }
+    try {
+      saved = localStorage.getItem('silpo-branch');
+      // гілка з посилання (напр. з QR-коду) запамʼятовується — застосунок з іконки Android
+      // стартує без ?branch= (manifest.webmanifest) і відкриє її ж
+      if (fromUrl) localStorage.setItem('silpo-branch', fromUrl);
+    } catch (e) { /* приватний режим */ }
     return fromUrl || saved || 'a';
   })(),
 

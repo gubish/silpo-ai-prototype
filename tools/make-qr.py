@@ -13,10 +13,10 @@ out = pathlib.Path(__file__).resolve().parent.parent / 'assets' / 'qr'
 out.mkdir(parents=True, exist_ok=True)
 for b in BRANCHES:
     qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, border=0)
-    qr.add_data(BASE + b)
+    qr.add_data(BASE + b + '&from=qr')  # from=qr — на телефоні покаже «Відкрийте як застосунок»
     img = qr.make_image(image_factory=qrcode.image.svg.SvgPathImage)
     svg = (img.to_string(encoding='unicode')
            .replace('fill="#000000"', 'fill="#202124" shape-rendering="crispEdges"')
            .replace('width="33mm" height="33mm" ', ''))  # розмір задає CSS
     (out / f'branch-{b}.svg').write_text(svg)
-    print(b, BASE + b)
+    print(b, BASE + b + '&from=qr')

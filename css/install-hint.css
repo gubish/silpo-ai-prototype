@@ -1,0 +1,61 @@
+/* =====================================================================
+   «Відкрийте як застосунок» — аркуш знизу на телефоні (js/install-hint.js)
+   ===================================================================== */
+
+.install-hint {
+  position: absolute;
+  inset: 0;
+  z-index: 200; /* над чатом і плаваючими кнопками */
+  display: flex;
+  align-items: flex-end;
+  background: rgba(19, 19, 30, 0.4);
+  animation: install-fade 0.25s ease;
+}
+.install-hint__sheet {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: var(--space-24) var(--space-16) calc(var(--home-indicator-h) + var(--space-16));
+  border-radius: 24px 24px 0 0;
+  background: var(--white);
+  animation: install-up 0.3s cubic-bezier(0.3, 1, 0.5, 1);
+}
+.install-hint__title { margin: 0; font-size: 22px; line-height: 1.2; font-weight: var(--fw-semibold); color: var(--ink-100); }
+.install-hint__text { margin: 0; font-size: var(--fs-body-md); line-height: 1.4; color: var(--black-72); }
+.install-hint__steps { display: flex; flex-direction: column; gap: var(--space-12); margin: var(--space-4) 0; padding: 0; list-style: none; }
+.install-hint__steps li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-12);
+  border-radius: 16px;
+  background: var(--blue-50);
+  font-size: var(--fs-body-sm);
+  line-height: 1.4;
+  color: var(--ink-100);
+}
+.install-hint__num {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--blue-500);
+  color: var(--white);
+  font-weight: var(--fw-semibold);
+}
+.install-hint__steps img { flex: none; width: 28px; height: 28px; border-radius: 7px; object-fit: contain; }
+.install-hint__ok {
+  height: 48px;
+  border-radius: 100px;
+  background: var(--blue-500);
+  font-size: var(--fs-body-md);
+  font-weight: var(--fw-semibold);
+  color: var(--white);
+}
+@keyframes install-fade { from { opacity: 0; } }
+@keyframes install-up { from { transform: translateY(100%); } }
+@media (prefers-reduced-motion: reduce) { .install-hint, .install-hint__sheet { animation: none; } }
