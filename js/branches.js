@@ -65,6 +65,15 @@ const Branch = {
       Object.assign(Screens, o.screens); // свій екран гілки замість основного
     }
     this.renderToggle();
+    this.renderQr();
+  },
+
+  /** QR-код поза телефоном: онлайн-версія поточної гілки (assets/qr/branch-<id>.svg — tools/make-qr.py) */
+  renderQr() {
+    const card = document.querySelector('.qr-card');
+    if (!card) return;
+    card.querySelector('.qr-card__code').src = `assets/qr/branch-${this.current}.svg`;
+    card.querySelector('.qr-card__hint').textContent = `Гілка ${this.list[this.current].label} · наведіть камеру`;
   },
 
   set(id) {

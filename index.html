@@ -4,6 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Сільпо — прототип</title>
+  <!-- iPhone: «Поділитися → На початковий екран» — відкривається на весь екран, як застосунок -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Сільпо">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="apple-touch-icon" href="assets/images/app-icon.png">
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
@@ -57,6 +64,15 @@
   <div class="chips-toggle" role="group" aria-label="Версія тегів чату">
     <span class="chips-toggle__label">Теги</span>
   </div>
+
+  <!-- Поза телефоном: QR-код — відкрити цю гілку на своєму телефоні (онлайн-версія; картинку підставляє js/branches.js) -->
+  <figure class="qr-card">
+    <img class="qr-card__code" alt="QR-код: прототип на телефоні">
+    <figcaption>
+      <b>На телефоні</b>
+      <span class="qr-card__hint"></span>
+    </figcaption>
+  </figure>
 
   <div class="phone">
 

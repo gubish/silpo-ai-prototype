@@ -73,7 +73,8 @@ const MgDrag = {
   /** Позиція в межах екрана: не за краями, не на статус-барі й не на футері */
   clamp(p) {
     const ph = this.phoneRect(), S = this.slot, m = this.margin;
-    const top = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--statusbar-h')) || 54;
+    const sb = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--statusbar-h'));
+    const top = Number.isNaN(sb) ? 54 : sb; // на справжньому телефоні намальованого статус-бару немає — 0
     const minX = m + S.r - S.cx, maxX = ph.width - m - S.r - S.cx;
     const minY = top + m + S.r - (S.h - S.cyFromBottom);
     const maxY = this.floor() - m - S.r - (S.h - S.cyFromBottom);
