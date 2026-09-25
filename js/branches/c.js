@@ -34,7 +34,7 @@
         maxItems: 8, // скільки карток показати в чаті
       },
       /* Поза телефоном: перемикач «МГ у тегах» — аватарка МГ на початку рядка жовтих тегів */
-      mgAvatarToggle: { label: 'МГ у тегах', on: true },
+      mgAvatarToggle: { label: 'МГ у тегах', on: false }, // on — стан за замовчуванням
       mgDrag: {
         gone: 'Машрум сховався',
         back: 'Повернути',
@@ -108,7 +108,7 @@
      Вимкнено — рядок тегів без аватарки МГ (css/branches/c.css, <html data-mg-avatar="off">).
      Вибір памʼятається в браузері. */
   document.addEventListener('DOMContentLoaded', () => { // після App.init — DATA вже з даними гілки
-    const T = DATA.mgAvatarToggle, key = 'silpo-c-mg-avatar';
+    const T = DATA.mgAvatarToggle, key = 'silpo-c-mg-avatar-v2'; // -v2: з 25.09 за замовчуванням вимкнено, старий вибір не діє
     let on = T.on;
     try { const v = localStorage.getItem(key); if (v != null) on = v === 'on'; } catch (e) { /* приватний режим */ }
     const set = v => { document.documentElement.dataset.mgAvatar = v ? 'on' : 'off'; };

@@ -11,9 +11,8 @@
   <meta name="apple-mobile-web-app-title" content="Сільпо">
   <meta name="theme-color" content="#ffffff">
   <link rel="apple-touch-icon" href="assets/images/app-icon.png">
-  <!-- «На початковий екран» / «Установити застосунок». У manifest.webmanifest навмисно НЕМАЄ start_url:
-       тоді іконка відкриває адресу сторінки, з якої її додали (з ?branch=c — гілку C) -->
-  <link rel="manifest" href="manifest.webmanifest">
+  <!-- Опису застосунку (manifest) навмисно НЕМАЄ: з ним iPhone відкривав з іконки гілку A.
+       Без нього іконка запамʼятовує точну адресу сторінки, з якої її додали (з ?branch=c — гілку C). -->
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">
