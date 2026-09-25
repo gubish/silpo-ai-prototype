@@ -16,14 +16,14 @@
   font-weight: var(--fw-semibold);
   color: var(--ink-72);
 }
+/* лише сам МГ зі своїм сяйвом, без кружечка: видима частина картинки ≈ 85% квадрата,
+   тому трохи збільшуємо, щоб сяйво доходило до меж */
 .mg-block__avatar {
   width: 28px;
   height: 28px;
   flex: none;
-  padding: 2px;
-  border-radius: 50%;
-  background: #fff6cc;
   object-fit: contain;
+  transform: scale(1.15);
 }
 
 .mg-chips { display: flex; flex-wrap: wrap; gap: var(--space-8); }
@@ -81,3 +81,44 @@
 #home .mg-block { padding-top: var(--space-4); }
 /* чекаут: блок у кінці контенту, над панеллю оплати */
 #checkout .mg-block { padding: var(--space-8) var(--space-16) var(--space-16); }
+
+/* ---------- В один рядок (гілка C): маленький МГ зліва, теги скролляться поруч ----------
+   МГ не їде разом із тегами — інакше після свайпу незрозуміло, чиї вони.
+   Теги ховаються під МГ плавно: --mg-row-bg — колір тла під рядком на цьому екрані. */
+.mg-block--compact {
+  --mg-row-bg: #fff;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  padding: var(--space-8) 0 var(--space-8) var(--space-16);
+}
+.mg-block__ask {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 50%;
+}
+.mg-block--compact .mg-block__avatar { width: 32px; height: 32px; }
+.mg-block__ask::after { /* м'який край, під який заїжджають теги */
+  content: "";
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  left: 100%;
+  width: var(--space-12);
+  background: linear-gradient(to right, var(--mg-row-bg), transparent);
+  pointer-events: none;
+}
+.mg-block__ask:active { transform: scale(0.94); }
+.mg-block--compact .mg-chips {
+  flex: 1;
+  min-width: 0;
+  flex-wrap: nowrap;
+  padding: 2px var(--space-16) 2px var(--space-8);
+}
+/* кошик — на сірому тлі, теги до правого краю екрана */
+#cart .mg-block--compact { --mg-row-bg: var(--blue-50); padding: var(--space-12) 0 0 var(--space-16); }

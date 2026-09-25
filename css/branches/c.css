@@ -1,0 +1,91 @@
+/* =====================================================================
+   ГІЛКА C — стилі (крім перетягування МГ — css/branches/c-drag.css).
+   Кожен селектор починається з [data-branch="c"].
+   ===================================================================== */
+
+/* ---------- Лістинг: хедер як у застосунку (js/branches/c.js) ----------
+   Сірий хедер (назва + чипси) — стікі разом зі статус-баром. Поки сторінка вгорі —
+   суцільний сірий; прокрутили — мутне скло, як нижня панель (.plp-bottom).
+   Товари — на білому «аркуші» з заокругленими верхніми кутами. */
+[data-branch="c"] #listing { --screen-bg: var(--bg-lavender); }
+/* статус-бар прозорий: під ним — хедер зі своїм тлом */
+[data-branch="c"] .phone:has(#listing.is-active) .statusbar { background: transparent; }
+
+[data-branch="c"] .plp-head {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  margin-top: calc(-1 * var(--statusbar-h)); /* заходить під статус-бар */
+  padding: var(--statusbar-h) 0 var(--space-16);
+  background: var(--bg-lavender);
+  transition: background-color 0.2s ease;
+}
+[data-branch="c"] .plp-head.is-scrolled {
+  background: rgba(255, 255, 255, 0.72);
+  -webkit-backdrop-filter: blur(40px);
+  backdrop-filter: blur(40px);
+}
+[data-branch="c"] .plp-head .plp-appbar { position: static; background: none; }
+
+/* чипси: заокруглені, активна — синя рамка з галочкою */
+[data-branch="c"] .plp-head .plp-tabs { padding: var(--space-4) var(--space-16) 0; }
+[data-branch="c"] .plp-head .plp-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  height: 40px;
+  padding: 0 var(--space-16);
+  border: 1px solid var(--ink-24);
+  border-radius: 999px;
+  background: transparent;
+  font-size: var(--fs-body-md);
+  line-height: 1.3;
+  color: rgba(32, 33, 36, 0.87);
+}
+[data-branch="c"] .plp-head .plp-tab.is-active {
+  padding-left: var(--space-12);
+  border: 2px solid var(--blue-500);
+  background: transparent;
+  color: var(--blue-500);
+  font-weight: var(--fw-semibold);
+}
+[data-branch="c"] .plp-head .plp-tab.is-active::before {
+  content: url("../../assets/icons/check-blue.svg");
+  width: 20px;
+  height: 20px;
+}
+
+[data-branch="c"] .plp-sheet {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px 24px 0 0;
+  background: var(--white);
+}
+[data-branch="c"] .plp-sheet .mg-block { padding-top: var(--space-16); }
+
+/* пошук у нижній панелі — кнопка, як на головній (веде на екран пошуку) */
+[data-branch="c"] #listing .plp-search { cursor: pointer; text-align: left; font-family: inherit; }
+[data-branch="c"] #listing .plp-search span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- Пошук: МГ у правому нижньому куті тут немає ---------- */
+[data-branch="c"] .phone:has(#search.is-active) :is(.fab-stack, .mg-free) { display: none; }
+
+/* ---------- Поза телефоном: замість перемикача вигляду острівця — «МГ у тегах» ---------- */
+[data-branch="c"] .island-toggle { display: none; }
+[data-branch="c"] .mg-avatar-toggle { top: 180px; padding-right: var(--space-8); cursor: pointer; }
+/* вимкнено — рядок тегів без аватарки МГ, теги від звичайного відступу */
+[data-mg-avatar="off"] .mg-block--compact .mg-block__ask { display: none; }
+[data-mg-avatar="off"] .mg-block--compact { padding-left: 0; }
+[data-mg-avatar="off"] .mg-block--compact .mg-chips { padding-left: var(--space-16); }
+
+/* ---------- Пошук: МГ праворуч від поля — кнопка в чат (js/branches/c-search.js) ---------- */
+[data-branch="c"] .search-mg { flex: none; width: 40px; height: 40px; padding: 0; border: 0; background: none; border-radius: 50%; }
+[data-branch="c"] .search-mg img { width: 40px; height: 40px; padding: 3px; border-radius: 50%; background: #fff6cc; object-fit: contain; }
+[data-branch="c"] .search-mg:active { transform: scale(0.94); }
+/* поле коротше: фільтр — лише коли є видача, без запасу місця під нього */
+[data-branch="c"] #search .search-head { gap: var(--space-12); }
+[data-branch="c"] #search:not(.has-query) .search-head__filter { display: none; }
+
+/* ---------- МГ біля пошуку — без жовтого кружечка, як аватарка в тегах (css/branches/b-mg.css) ---------- */
+[data-branch="c"] .search-mg img { padding: 0; border-radius: 0; background: none; transform: scale(1.15); }

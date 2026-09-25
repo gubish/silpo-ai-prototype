@@ -1,0 +1,116 @@
+/* =====================================================================
+   ГІЛКА C — Машрума можна перетягнути й викинути (js/branches/c-drag.js)
+   ===================================================================== */
+
+/* тягнемо пальцем, а не скролимо сторінку */
+[data-branch="c"] .fab-stack .ai-fab,
+[data-branch="c"] .mg-free .ai-fab,
+[data-branch="c"] .ai-fab.mg-free { touch-action: none; }
+
+/* МГ, якого відірвали від кута: живе в телефоні сам по собі */
+.mg-free {
+  position: absolute;
+  z-index: 50;
+  margin: 0 !important;
+  transition: opacity 0.2s ease;
+}
+/* кинули — плавно доїжджає на дозволене місце */
+.mg-free.is-settling { transition: left 0.28s cubic-bezier(0.3, 1.3, 0.5, 1), top 0.28s cubic-bezier(0.3, 1.3, 0.5, 1), opacity 0.2s ease; }
+
+/* у руці — трохи більший, з глибшою тінню */
+.mg-free.is-dragging { cursor: grabbing; }
+.mg-free.is-dragging .ai-fab,
+.ai-fab.mg-free.is-dragging {
+  transform-origin: 50% calc(100% - 40px);
+  scale: 1.08;
+  filter: drop-shadow(0 14px 24px rgba(20, 30, 50, 0.35));
+}
+/* за краєм екрана — напівпрозорий: відпустите, і зникне */
+.mg-free.is-leaving { opacity: 0.45; }
+
+/* викинули: відлітає в бік кидка й тане */
+.mg-free.is-gone {
+  transition: translate 0.32s cubic-bezier(0.4, 0, 1, 1), scale 0.32s ease, opacity 0.32s ease;
+  translate: var(--fly-x, 0) var(--fly-y, 0);
+  scale: 0.6;
+  opacity: 0;
+}
+/* повернули — проявляється в кутку */
+.is-back { animation: mg-back 0.45s cubic-bezier(0.3, 1.4, 0.5, 1); }
+@keyframes mg-back { from { opacity: 0; scale: 0.6; } }
+
+/* «Машрум сховався · Повернути» — снекбар як у Figma (Shop | Лістинг, node 6087:10273):
+   напівпрозоре темне тло, таймер зворотного відліку, дія синім */
+.mg-toast {
+  position: absolute;
+  left: var(--space-16);
+  right: var(--space-16);
+  z-index: 60;
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  border-radius: var(--radius-8);
+  background: var(--ink-87);
+  font-size: var(--fs-body-sm);
+  line-height: 1.4;
+  animation: mg-toast-in 0.25s ease;
+}
+.mg-toast__text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  padding: var(--space-12) var(--space-16);
+  color: rgba(255, 255, 255, 0.87);
+}
+/* таймер: цифра в колі, коло тане разом із часом (DATA.mgDrag.toastMs) */
+.mg-toast__timer {
+  position: relative;
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--fw-semibold);
+  color: #fff;
+}
+.mg-toast__timer svg { position: absolute; inset: 0; transform: rotate(-90deg); } /* починається згори */
+.mg-toast__timer circle {
+  fill: none;
+  stroke: var(--blue-300);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  animation: mg-toast-ring var(--toast-ms, 5s) linear forwards;
+}
+@keyframes mg-toast-ring { to { stroke-dashoffset: -100; } }
+.mg-toast__action {
+  flex: none;
+  align-self: center;
+  height: 32px;
+  margin: var(--space-8);
+  padding: 0 var(--space-8);
+  border: 0;
+  border-radius: 30px;
+  background: none;
+  font: inherit;
+  font-weight: var(--fw-semibold);
+  color: var(--blue-300);
+}
+.mg-toast__action:active { background: rgba(255, 255, 255, 0.08); }
+@keyframes mg-toast-in { from { opacity: 0; translate: 0 8px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .mg-free, .mg-free.is-settling, .mg-free.is-gone { transition: none; }
+  .is-back, .mg-toast { animation: none; }
+  .mg-toast__timer circle { animation: none; }
+}
+
+/* поки тягнемо — текст сторінки не виділяється */
+.mg-dragging, .mg-dragging * { -webkit-user-select: none; user-select: none; cursor: grabbing; }
+
+/* МГ у кутку на екрані без нижньої панелі (каталог): не нижче зони домашньої смужки iOS —
+   як і кинутий МГ та снекбар (MgDrag.floor). З панеллю --fab-bottom і так більший. */
+[data-branch="c"] .fab-stack { bottom: max(var(--fab-bottom, 16px), calc(var(--home-indicator-h) + var(--space-16))); }

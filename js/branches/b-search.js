@@ -14,7 +14,7 @@
    Дані — DATA.search.suggest / DATA.search.ai (js/branches/b.js), стилі — css/branches/b-search.css.
    ===================================================================== */
 
-if (Branch.current === 'b') {
+if (Branch.has('search')) { // гілки B і C
   const lower = s => s.toLocaleLowerCase('uk-UA');
   const fillQuery = (text, query) => text.split('{query}').join(query);
 

@@ -12,6 +12,8 @@
   border-bottom: 1px solid var(--ink-8);
   cursor: pointer;
 }
+/* останній рядок — без лінії: під списком або нічого, або блок МГ зі своєю лінією (css/branches/b-mg.css) */
+.sg-row:last-child { border-bottom: 0; }
 .sg-row__main {
   flex: 1;
   min-width: 0;

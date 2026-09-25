@@ -6,6 +6,9 @@
      решта (кошик, навігація, чат) спільна. Файли гілки B:
        js/branches/b.js   — зміни текстів/даних і, за потреби, свої екрани
        css/branches/b.css — зміни стилів (селектори з [data-branch="b"])
+   • C — демо-збірка: база A (МГ-острівець у кутку) + пошук із B і жовті
+     теги МГ лише на каталозі, лістингу, картці товару й у кошику — js/branches/c.js.
+     Спільні з B надбудови вмикає features у Branch.list.
    • Перемикання перезапускає прототип на тому ж екрані (кошик і чат з нуля).
    • Вибір памʼятається в браузері; для посилання на конкретну гілку
      додайте ?branch=b перед #: index.html?branch=b#pdp/banana
@@ -15,7 +18,8 @@ const Branch = {
   /** Назви гілок у перемикачі; title — підказка при наведенні */
   list: {
     a: { label: 'A', title: 'Гілка A — основний дизайн' },
-    b: { label: 'B', title: 'Гілка B — альтернативний дизайн' },
+    b: { label: 'B', title: 'Гілка B — альтернативний дизайн', features: ['search', 'mg'] },
+    c: { label: 'C', title: 'Гілка C — демо: A + пошук і теги МГ із B', features: ['search', 'mg'] },
   },
   fallback: 'a',
   storageKey: 'silpo-branch',
@@ -30,6 +34,12 @@ const Branch = {
     try { saved = localStorage.getItem('silpo-branch'); } catch (e) { /* приватний режим */ }
     return fromUrl || saved || 'a';
   })(),
+
+  /** Чи бере поточна гілка спільну надбудову: 'search' — підказки пошуку (js/branches/b-search.js),
+      'mg' — жовті чипи «Помічник може допомогти» (js/branches/b-mg.js) */
+  has(feature) {
+    return (this.list[this.current]?.features || []).includes(feature);
+  },
 
   /** Файл гілки описує свої зміни: Branch.define('b', { data: {...}, screens: {...} }) */
   define(id, { data, screens } = {}) {

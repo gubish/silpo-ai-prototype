@@ -13,17 +13,28 @@
                                                     для поточного екрана (DATA.aiChat.screens);
      { label, ask: true }                          — своє питання гостя (з пошуку) — як повідомлення в чаті.
    Розмітка:  MG.block(intents, { row: true }) — row: чипи в рядок зі скролом (екрани),
-              без row — з переносом (пошук). Стилі — css/branches/b-mg.css.
+              без row — з переносом (пошук);
+              { compact: true } — один рядок без заголовка: маленький МГ зліва + теги (гілка C). Стилі — css/branches/b-mg.css.
    ===================================================================== */
 
 const MG = {
   blocks: {},   // намір за номером блоку й чипа (розмітку перемальовують — номери свіжі)
   seq: 0,
 
-  block(intents, { row = false, title = DATA.mg.title } = {}) {
+  block(intents, { row = false, compact = false, title = DATA.mg.title } = {}) {
     if (!intents || !intents.length) return '';
     const id = ++this.seq;
     this.blocks[id] = intents;
+    const chips = intents.map((t, i) => `<button class="mg-chip" type="button" data-mg="${id}:${i}">${t.label}</button>`).join('');
+    // compact — один рядок: маленький МГ стоїть на місці зліва (тап — чат), теги скролляться поруч;
+    // назва блоку лишається лише для програм читання екрана
+    if (compact) return `
+      <section class="mg-block mg-block--compact" aria-label="${title}">
+        <button class="mg-block__ask" type="button" data-mg-open aria-label="Відкрити чат з помічником">
+          <img class="mg-block__avatar" src="${DATA.aiChat.avatar}" alt="">
+        </button>
+        <div class="mg-chips hscroll">${chips}</div>
+      </section>`;
     return `
       <section class="mg-block ${row ? 'mg-block--row' : ''}" aria-label="${title}">
         <div class="mg-block__head">
@@ -59,8 +70,10 @@ const MG = {
   },
 };
 
-if (Branch.current === 'b') {
+if (Branch.has('mg')) { // гілки B і C
   document.addEventListener('click', e => {
+    // аватарка МГ у рядку тегів — просто чат із привітанням для цього екрана
+    if (e.target.closest('[data-mg-open]')) { e.stopPropagation(); AiChat.open(); return; }
     const chip = e.target.closest('[data-mg]');
     if (!chip) return;
     e.stopPropagation();
