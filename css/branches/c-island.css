@@ -1,0 +1,134 @@
+/* =====================================================================
+   ГІЛКА C — «мультяшний» острівець МГ (Figma: Shop | Лістинг, node 6097:9225).
+   Та сама механіка, що в A (js/mg-island.js): МГ скочується вліво, з'являється
+   текст і ×. Замість білої «пігулки» — жовто-зелена клякса з сяйвом
+   (assets/images/island/blob.png — знімок вузла 6097:9227 з Figma; SVG із Figma браузер малює інакше), під текстом — мʼякі жовті плями.
+   Появу зроблено мʼякою, «як магія»: МГ пливе й раз плавно перекидається, без відскоку; клякса
+   лишається за ним слідом (як хвіст комети), текст і × проступають із розмиття; потім клякса ледь «дихає».
+   Теми «Темний / Скло» з A тут не діють (перемикач у C схований).
+   ===================================================================== */
+
+[data-branch="c"] .mg-island {
+  --isl-scale: 0.9;  /* МГ більший: без білого «паспарту» навколо */
+  --isl-speed: 1100ms; /* повільніше, ніж в A: «магія проявляється», а не «капітошка»; МГ має свій темп — нижче */
+  --isl-ease: cubic-bezier(0.22, 1, 0.36, 1); /* мʼяке гальмування без відскоку */
+  --isl-inset: 0px;
+  /* рамка клякси в Figma: від лівого краю «пігулки» до правого краю ×, трохи ширша з боків */
+  --blob-w: calc(var(--isl-w) + var(--isl-gap) + var(--isl-close) + 12px);
+  --blob-h: 117px;
+}
+
+/* клякса: знімок із Figma ширший за рамку клякси (тінь і сяйво) — пропорції звідти ж:
+   рамка 369.6×116.9, знімок 393×133, праворуч +12.5, знизу +5.5 */
+[data-branch="c"] .mg-island::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  right: calc(-2px - var(--blob-w) * 0.0338);
+  bottom: calc(var(--isl-cy) - var(--blob-h) / 2 - var(--blob-h) * 0.047);
+  width: calc(var(--blob-w) * 1.0633);
+  height: calc(var(--blob-h) * 1.1377);
+  background: url("../../assets/images/island/blob.png") center / 100% 100% no-repeat;
+  transform-origin: calc(100% - 40px) 55%;
+  /* слід за МГ: маска вдвічі ширша за кляксу — ліва половина прозора, права непрозора,
+     між ними мʼякий край (~65px). Зсув маски веде цей край справа наліво — за МГ */
+  -webkit-mask-image: linear-gradient(to right, transparent 46%, #000 54%);
+  mask-image: linear-gradient(to right, transparent 46%, #000 54%);
+  -webkit-mask-size: 200% 100%;
+  mask-size: 200% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 0% 0;
+  mask-position: 0% 0;
+  opacity: 0;
+  filter: blur(6px);
+  pointer-events: none;
+  /* ховається: слід «втягується» за МГ назад праворуч */
+  transition: -webkit-mask-position 900ms cubic-bezier(0.4, 0, 0.2, 1), mask-position 900ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 300ms ease 600ms, filter 300ms ease;
+}
+/* МГ котиться вліво — клякса лишається за ним, як хвіст комети чи слід слимака.
+   Один безперервний рух (mg-blob-trail, 1.5 с, та сама крива, що в МГ): поки МГ котиться,
+   край сліду тримається за ним на 30–60px; коли МГ майже зупинився (~0.75 с), слід плавно
+   пропливає під ним і домальовує лівий край — без зупинки й «стрибка». */
+[data-branch="c"] .mg-island.is-open::before {
+  -webkit-mask-position: 100% 0;
+  mask-position: 100% 0;
+  opacity: 1;
+  filter: blur(0);
+  transition: opacity 200ms ease, filter 1000ms var(--isl-ease) 200ms;
+  animation:
+    mg-blob-trail 1.5s cubic-bezier(0.4, 0, 0.2, 1) both,
+    mg-blob-breathe 3.6s ease-in-out 1.5s infinite alternate;
+}
+/* позиція маски: 6% — край сліду одразу за МГ на старті (біля ×), 100% — клякса вся */
+@keyframes mg-blob-trail {
+  from { -webkit-mask-position: 6% 0;   mask-position: 6% 0; }
+  to   { -webkit-mask-position: 100% 0; mask-position: 100% 0; }
+}
+@keyframes mg-blob-breathe {
+  0%   { transform: none; }
+  50%  { transform: scale(1.012, 0.975) skewX(-0.6deg); }
+  100% { transform: scale(0.992, 1.02) skewX(0.5deg); }
+}
+
+/* «пігулка» і кружечок × — прозорі: тло дає клякса (!important — сильніше за теми з A) */
+[data-branch="c"] .mg-island__surface,
+[data-branch="c"] .mg-island__close {
+  background: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+[data-branch="c"] .mg-island__surface::before,
+[data-branch="c"] .mg-island__close::before { content: none !important; }
+[data-branch="c"] .mg-island__surface { overflow: visible; padding-left: calc(var(--isl-h) + var(--space-16)); padding-right: var(--space-8); }
+[data-branch="c"] .mg-island__close img { opacity: 1; filter: none !important; }
+
+/* текст: 13px, як у макеті, на мʼяких жовтих плямах */
+[data-branch="c"] .mg-island__text {
+  position: relative;
+  isolation: isolate;
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: var(--fw-medium); /* трохи жирніше за Regular з макета */
+  color: var(--ink-100) !important;
+}
+[data-branch="c"] .mg-island__text::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 2px 8% 2px -8px;
+  border-radius: 12px;
+  background: #f3f499;
+  filter: blur(9.7px);
+}
+
+/* МГ пливе на місце й раз мʼяко перекидається (котиться вліво), без відскоку; так само повертається */
+/* свій темп: мʼякий розгін і мʼяке гальмування — кувирок без ривка на старті */
+[data-branch="c"] .mg-island > .ai-fab { transition: transform 1200ms cubic-bezier(0.4, 0, 0.2, 1), filter 600ms ease; }
+[data-branch="c"] .mg-island.is-open > .ai-fab {
+  transform: translateX(var(--isl-travel)) rotate(-360deg) scale(var(--isl-scale));
+  filter: drop-shadow(0 0 10px rgba(243, 244, 153, 0.9)); /* ледь світиться, як і клякса */
+}
+[data-branch="c"] .mg-island__surface { transition: width var(--isl-speed) var(--isl-ease), right var(--isl-speed) var(--isl-ease), opacity 300ms ease; }
+
+/* текст і × проступають із легкого туману, коли клякса вже майже зʼявилась */
+[data-branch="c"] .mg-island__text,
+[data-branch="c"] .mg-island__close {
+  filter: blur(6px);
+  transform: none;
+  transition: opacity 300ms ease, filter 300ms ease;
+}
+[data-branch="c"] .mg-island.is-open .mg-island__text,
+[data-branch="c"] .mg-island.is-open .mg-island__close {
+  filter: blur(0);
+  transform: none;
+  transition: opacity 700ms ease 550ms, filter 800ms var(--isl-ease) 550ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-branch="c"] .mg-island::before { transition: none; animation: none !important; filter: none; }
+  [data-branch="c"] .mg-island.is-open::before { transition: none; animation: none; }
+  [data-branch="c"] .mg-island__text, [data-branch="c"] .mg-island__close { filter: none; }
+}
