@@ -71,6 +71,9 @@ const Branch = {
     }
     this.renderToggle();
     this.renderQr();
+    // іконка на початковому екрані відкриватиме саме цю гілку (інакше — A: у застосунку своя памʼять)
+    const manifest = document.querySelector('link[rel="manifest"]');
+    if (manifest) manifest.href = `manifest-${this.current}.webmanifest`;
   },
 
   qrVersion: 2, // змінили QR-коди (tools/make-qr.py) — збільште на 1

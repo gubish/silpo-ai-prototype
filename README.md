@@ -12,7 +12,7 @@
   QR-картинки — `assets/qr/branch-<гілка>.svg`, генерує `tools/make-qr.py` (нова гілка — допишіть і запустіть).
   QR веде на `?branch=<гілка>&from=qr`: відкрили так у браузері — знизу аркуш «Відкрийте як застосунок» із трьома кроками
   для iPhone чи Android (`js/install-hint.js`, `css/install-hint.css`, тексти — `install` у `js/data.js`).
-  Android: «Установити застосунок» — `manifest.webmanifest`; гілка з посилання запамʼятовується, тож іконка відкриває її ж.
+  Іконка на початковому екрані відкриває ту гілку, з якої її додали: `manifest-<гілка>.webmanifest` (start_url з `?branch=`), підставляє `js/branches.js`.
 - Код: https://github.com/gubish/silpo-ai-prototype (публічний; публікується GitHub Pages з гілки `main`).
 - Оновити онлайн-версію після правок (з папки `02`):
   ```bash
