@@ -33,8 +33,7 @@ const Branch = {
     let saved = null;
     try {
       saved = localStorage.getItem('silpo-branch');
-      // гілка з посилання (напр. з QR-коду) запамʼятовується — застосунок з іконки Android
-      // стартує без ?branch= (manifest.webmanifest) і відкриє її ж
+      // гілка з посилання (напр. з QR-коду) запамʼятовується в цьому браузері
       if (fromUrl) localStorage.setItem('silpo-branch', fromUrl);
     } catch (e) { /* приватний режим */ }
     return fromUrl || saved || 'a';
@@ -71,9 +70,6 @@ const Branch = {
     }
     this.renderToggle();
     this.renderQr();
-    // іконка на початковому екрані відкриватиме саме цю гілку (інакше — A: у застосунку своя памʼять)
-    const manifest = document.querySelector('link[rel="manifest"]');
-    if (manifest) manifest.href = `manifest-${this.current}.webmanifest`;
   },
 
   qrVersion: 2, // змінили QR-коди (tools/make-qr.py) — збільште на 1

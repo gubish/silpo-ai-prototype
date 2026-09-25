@@ -11,9 +11,9 @@
   <meta name="apple-mobile-web-app-title" content="Сільпо">
   <meta name="theme-color" content="#ffffff">
   <link rel="apple-touch-icon" href="assets/images/app-icon.png">
-  <!-- «На початковий екран» / «Установити застосунок»: опис застосунку своєї гілки
-       (manifest-<гілка>.webmanifest, start_url з ?branch=) — підставляє js/branches.js -->
-  <link rel="manifest" href="manifest-a.webmanifest">
+  <!-- «На початковий екран» / «Установити застосунок». У manifest.webmanifest навмисно НЕМАЄ start_url:
+       тоді іконка відкриває адресу сторінки, з якої її додали (з ?branch=c — гілку C) -->
+  <link rel="manifest" href="manifest.webmanifest">
 
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/base.css">

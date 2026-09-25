@@ -1,7 +1,6 @@
 {
-  "name": "Сільпо — прототип A",
-  "short_name": "Сільпо A",
-  "start_url": "./?branch=a",
+  "name": "Сільпо — прототип",
+  "short_name": "Сільпо",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
