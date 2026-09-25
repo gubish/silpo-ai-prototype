@@ -74,10 +74,12 @@
 /* ---------- Поза телефоном: замість перемикача вигляду острівця — «МГ у тегах» ---------- */
 [data-branch="c"] .island-toggle { display: none; }
 [data-branch="c"] .mg-avatar-toggle { top: 180px; padding-right: var(--space-8); cursor: pointer; }
-/* вимкнено — рядок тегів без аватарки МГ, теги від звичайного відступу */
-[data-mg-avatar="off"] .mg-block--compact .mg-block__ask { display: none; }
-[data-mg-avatar="off"] .mg-block--compact { padding-left: 0; }
-[data-mg-avatar="off"] .mg-block--compact .mg-chips { padding-left: var(--space-16); }
+/* вимкнено — рядок тегів без аватарки МГ, теги від звичайного відступу.
+   Але якщо великого МГ змахнули чи вимкнули (<html data-mg-corner="off">, js/branches/c-settings.js) —
+   маленький МГ у тегах зʼявляється сам: помічник лишається під рукою */
+[data-mg-avatar="off"]:not([data-mg-corner="off"]) .mg-block--compact .mg-block__ask { display: none; }
+[data-mg-avatar="off"]:not([data-mg-corner="off"]) .mg-block--compact { padding-left: 0; }
+[data-mg-avatar="off"]:not([data-mg-corner="off"]) .mg-block--compact .mg-chips { padding-left: var(--space-16); }
 
 /* ---------- Пошук: МГ праворуч від поля — кнопка в чат (js/branches/c-search.js) ---------- */
 [data-branch="c"] .search-mg { flex: none; width: 40px; height: 40px; padding: 0; border: 0; background: none; border-radius: 50%; }

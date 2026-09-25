@@ -1,0 +1,76 @@
+/* =====================================================================
+   ГІЛКА C — «Налаштування помічника» (js/branches/c-settings.js) і скіни МГ
+   ===================================================================== */
+
+/* скін — для всіх МГ: живий (Rive-канваси) і картинка (теги, пошук, чат) */
+[data-branch="c"] :is(.mushroom__layer, img[src$="ai/mascot.png"]) { filter: var(--mg-skin, none); }
+/* у плитках на екрані налаштувань кожен скін — свій (inline style у розмітці, сильніший за це правило) */
+
+#mg-settings { --screen-bg: var(--blue-50); }
+.mgs-head {
+  position: sticky;
+  top: var(--statusbar-h);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  height: 56px;
+  padding: 0 var(--space-16);
+  background: var(--white);
+}
+.mgs-head__back { width: 40px; height: 40px; margin-left: -8px; display: flex; align-items: center; justify-content: center; }
+.mgs-head__back img { width: 24px; height: 24px; }
+.mgs-head__title { margin: 0; font-size: 20px; line-height: 26px; font-weight: var(--fw-semibold); color: var(--ink-100); }
+
+.mgs-body { display: flex; flex-direction: column; gap: var(--space-12); padding: var(--space-12) var(--space-16) var(--space-24); }
+.mgs-card { padding: var(--space-16); border-radius: 16px; background: var(--white); }
+.mgs-card__title { margin: 0 0 var(--space-12); font-size: var(--fs-body-md); line-height: 1.3; font-weight: var(--fw-semibold); color: var(--ink-100); }
+
+.mgs-hero { display: flex; align-items: center; gap: var(--space-16); }
+.mgs-hero__mg { width: 64px; height: 64px; flex: none; transform: scale(1.15); }
+.mgs-hero__text { display: flex; flex-direction: column; gap: 2px; font-size: var(--fs-body-sm); line-height: 1.35; color: var(--black-72); }
+.mgs-hero__text b { font-size: var(--fs-body-md); font-weight: var(--fw-semibold); color: var(--ink-100); }
+
+.mgs-row { display: flex; align-items: center; gap: var(--space-16); cursor: pointer; }
+.mgs-row__text { flex: 1; display: flex; flex-direction: column; gap: var(--space-4); }
+.mgs-row__text b { font-size: var(--fs-body-md); line-height: 1.3; font-weight: var(--fw-semibold); color: var(--ink-100); }
+.mgs-row__text small { font-size: var(--fs-body-sm); line-height: 1.35; color: var(--black-72); }
+.mgs-row .switch { flex: none; }
+
+.mgs-skins { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-8); }
+.mgs-skin {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-12) var(--space-4) var(--space-12);
+  border: 2px solid transparent;
+  border-radius: 16px;
+  background: var(--blue-50);
+  font-family: inherit;
+  text-align: center;
+  color: var(--ink-100);
+}
+.mgs-skin img { width: 52px; height: 52px; margin-bottom: var(--space-4); object-fit: contain; }
+.mgs-skin img[src$="mascot.png"] { transform: scale(1.15); }
+.mgs-skin b { font-size: var(--fs-body-sm); line-height: 1.3; font-weight: var(--fw-semibold); }
+.mgs-skin span { font-size: var(--fs-caption-sm, 12px); line-height: 1.3; color: var(--black-72); }
+.mgs-skin[aria-pressed="true"] { border-color: var(--blue-500); background: var(--white); }
+.mgs-skin[aria-pressed="true"] b { color: var(--blue-500); }
+.mgs-skin:not([aria-disabled="true"]):active { transform: scale(0.97); }
+
+/* закриті персонажі — заготовка на майбутнє: сірі, напівпрозорі, із замочком, не обираються */
+.mgs-skin[aria-disabled="true"] { cursor: not-allowed; }
+.mgs-skin[aria-disabled="true"] img { filter: grayscale(1); opacity: 0.4; }
+.mgs-skin[aria-disabled="true"] b { color: var(--ink-24); }
+.mgs-skin[aria-disabled="true"] span { color: var(--ink-24); }
+.mgs-skin[aria-disabled="true"]::after {
+  content: "🔒";
+  position: absolute;
+  top: var(--space-8);
+  right: var(--space-8);
+  font-size: 12px;
+  line-height: 1;
+  opacity: 0.6;
+}

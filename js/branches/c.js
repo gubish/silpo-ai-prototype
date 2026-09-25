@@ -21,7 +21,35 @@
       search: B.search,
       mg: { title: B.mg.title, catalog: B.mg.catalog, listing: B.mg.listing, pdp: B.mg.pdp, cart: B.mg.cart },
       // питання з пошуку («Що приготувати на вечерю?») → готовий сценарій чату за ключовими словами
-      aiChat: { shop: { questionRoutes: B.aiChat.shop.questionRoutes } },
+      aiChat: {
+        shop: { questionRoutes: B.aiChat.shop.questionRoutes },
+        menu: ['Історія чату', 'Налаштування помічника'], // «⋮» у чаті; другий пункт відкриває налаштування
+      },
+      /* Екран «Налаштування помічника» (js/branches/c-settings.js): вимикач МГ і скіни.
+         Скін — CSS-фільтр для всіх МГ (у кутку, в острівці, тегах, біля пошуку, в чаті). */
+      mgSettings: {
+        title: 'Налаштування помічника',
+        name: 'Машрум Геннадійович',
+        subtitle: 'Знайомтеся: Машрум Геннадійович\u00A0— наш ШІ-помічник. Він так довго був грибом, що тепер, здається, трохи більше, ніж просто гриб.',
+        showLabel: 'Показувати помічника',
+        showHint: 'Кнопка МГ у кутку екрана. Змахнули його за край — він вимикається; увімкніть тут, щоб повернути.',
+        skinsTitle: 'Помічник',
+        lockedHint: 'Скоро', // підпис на закритих
+        /* Вибір персонажа, як у ChatGPT. Поки доступний лише МГ; решта — заготовка для демо:
+           сірі, напівпрозорі, не обираються (locked). image — картинка персонажа
+           (assets/images/skins/: Microsoft Fluent Emoji, ліцензія MIT — див. LICENSE.txt там же). */
+        skins: [
+          { id: 'classic', label: 'Машрум', desc: 'Той самий МГ', filter: 'none' },
+          { id: 'owl', label: 'Совеня', desc: 'Пильнує знижки навіть уночі', image: 'assets/images/skins/owl.png', locked: true },
+          { id: 'fire', label: 'Вогник', desc: 'Гаряча енергія для швидких покупок', image: 'assets/images/skins/fire.png', locked: true },
+          { id: 'droplet', label: 'Крапля', desc: 'Спокій для неквапливих покупок', image: 'assets/images/skins/droplet.png', locked: true },
+          { id: 'seedling', label: 'Паросток', desc: 'Зелені ідеї для корисного кошика', image: 'assets/images/skins/seedling.png', locked: true },
+          { id: 'robot', label: 'Робот', desc: 'Точний, як список покупок', image: 'assets/images/skins/robot.png', locked: true },
+          { id: 'fox', label: 'Лис', desc: 'Хитро знаходить найкращу ціну', image: 'assets/images/skins/fox.png', locked: true },
+          { id: 'avocado', label: 'Авокадо', desc: 'Корисна порада на щодень', image: 'assets/images/skins/avocado.png', locked: true },
+          { id: 'mushroom', label: 'Грибочок', desc: 'Добрий гриб — для тих, кому МГ суворий', image: 'assets/images/skins/mushroom.png', locked: true },
+        ],
+      },
       /* Машрума можна перетягнути, а викинути за екран — сховати (js/branches/c-drag.js) */
       /* МГ праворуч від поля пошуку — кнопка в чат (js/branches/c-search.js).
          found — відповідь, коли за запитом є товари; notFound — лише теги-наміри.

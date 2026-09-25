@@ -9,6 +9,8 @@
      «відмахнувся й вимкнув». Внизу — «Машрум сховався · Повернути»;
      «На початок» теж повертає його в кут.
    • Поки МГ не в кутку, острівець (js/mg-island.js) не заговорює.
+   • Викинутий МГ лишається вимкненим і після перезапуску — увімкнути назад можна
+     вимикачем у «Налаштуваннях помічника» (js/branches/c-settings.js) або «Повернути».
    Тексти — DATA.mgDrag (js/branches/c.js), стилі — css/branches/c-drag.css.
    ===================================================================== */
 
@@ -39,11 +41,33 @@ const MgDrag = {
     document.addEventListener('screenchange', () => requestAnimationFrame(() => this.fit(true)));
     window.addEventListener('resize', () => this.fit(false));
 
+    // вимкнули раніше (змахнули за край чи вимикачем у «Налаштуваннях помічника») — не показуємо
+    if (!this.isEnabled()) this.el.hidden = true;
+
     // поки МГ не в кутку, острівець мовчить
     if (typeof MgIsland !== 'undefined') {
       const speak = MgIsland.speak.bind(MgIsland);
       MgIsland.speak = key => (this.free || this.el.hidden ? undefined : speak(key));
     }
+  },
+
+  /* ---------- Увімкнено / вимкнено — памʼятається (js/branches/c-settings.js) ---------- */
+  enabledKey: 'silpo-c-mg-enabled',
+  isEnabled() {
+    try { return localStorage.getItem(this.enabledKey) !== 'off'; } catch (e) { return true; }
+  },
+  saveEnabled(on) {
+    try { localStorage.setItem(this.enabledKey, on ? 'on' : 'off'); } catch (e) { /* ок */ }
+    document.dispatchEvent(new CustomEvent('mg-enabled', { detail: { on } }));
+  },
+  /** Вимикач у «Налаштуваннях помічника»: вимкнути — просто сховати, увімкнути — назад у кут */
+  setEnabled(on) {
+    if (!this.el) return;
+    if (on) return this.restore();
+    this.hideToast();
+    if (typeof MgIsland !== 'undefined') MgIsland.hide();
+    this.el.hidden = true;
+    this.saveEnabled(false);
   },
 
   phoneRect() { return this.phone.getBoundingClientRect(); },
@@ -190,6 +214,7 @@ const MgDrag = {
     setTimeout(() => {
       this.el.hidden = true;
       this.el.classList.remove('is-gone');
+      this.saveEnabled(false); // «відмахнувся й вимкнув» — увімкнути назад можна в налаштуваннях
       this.toast();
     }, 320);
   },
@@ -203,6 +228,7 @@ const MgDrag = {
     this.free = false;
     this.pos = null;
     this.el.hidden = false;
+    this.saveEnabled(true);
     this.el.classList.add('is-back');
     setTimeout(() => this.el.classList.remove('is-back'), 450);
   },
