@@ -39,6 +39,8 @@ p, h1, h2, h3 { margin: 0; }
   isolation: isolate;
 }
 @media (max-width: 440px) {
+  /* тло сторінки (сіре навколо рамки на десктопі) iPhone показує під статус-баром і при «відскоку» — біле */
+  html, body { background: var(--white); }
   body { padding: 0; }
   .phone { width: 100vw; height: 100vh; height: 100dvh; border-radius: 0; box-shadow: none; }
   /* справжній телефон: свій статус-бар уже є — намальований «9:41» ховаємо, і місце під нього теж;
