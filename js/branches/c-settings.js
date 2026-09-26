@@ -5,7 +5,8 @@
    • Вибір персонажа (як у ChatGPT): поки доступний лише МГ, інші — заготовка для демо,
      сірі й не обираються (locked у DATA.mgSettings.skins). Доступний скін — CSS-фільтр для всіх МГ
      (<html style="--mg-skin: …">, css/branches/c-settings.css). Памʼятається в браузері.
-   • Великий МГ вимкнений (змахнули чи вимикачем) — маленький МГ зʼявляється в рядках тегів.
+   • Великий МГ вимкнений (змахнули чи вимикачем) — вмикається «Маленький МГ» (js/branches/c.js).
+   • Той самий вимикач є й поза телефоном — «Великий МГ» під «Маленький МГ».
    • Відкривається з меню «⋮» у чаті («Налаштування помічника») і з кнопки профілю на головній.
    Тексти й скіни — DATA.mgSettings (js/branches/c.js).
    ===================================================================== */
@@ -77,17 +78,23 @@ if (Branch.current === 'c') {
     });
   };
 
-  /** Великий МГ вимкнений — позначка на <html>: тоді маленький МГ зʼявляється в рядках тегів
-      (навіть коли «МГ у тегах» вимкнено; css/branches/c.css) */
-  const markCorner = on => { document.documentElement.dataset.mgCorner = on ? 'on' : 'off'; };
+  /* Поза телефоном, під «Маленький МГ»: той самий вимикач великого МГ, що й на екрані налаштувань */
+  let bigToggle = null;
+  const syncBig = () => { if (bigToggle) bigToggle.checked = MgDrag.isEnabled(); };
 
   document.addEventListener('DOMContentLoaded', () => { // після App.init
     MgSettings.applySkin(MgSettings.skin(), false);
-    markCorner(MgDrag.isEnabled());
+    const box = document.createElement('label');
+    box.className = 'chips-toggle mg-big-toggle';
+    box.innerHTML = `<span class="chips-toggle__label">${DATA.mgSettings.bigToggle}</span><input class="switch" type="checkbox">`;
+    document.body.append(box);
+    bigToggle = box.querySelector('input');
+    syncBig();
+    bigToggle.addEventListener('change', () => MgDrag.setEnabled(bigToggle.checked));
   });
   // відкрили екран — вимикач показує, чи МГ зараз увімкнений
   document.addEventListener('screenchange', e => { if (e.detail.id === 'mg-settings') MgSettings.sync(); });
-  document.addEventListener('mg-enabled', e => { MgSettings.sync(); markCorner(e.detail.on); });
+  document.addEventListener('mg-enabled', () => { MgSettings.sync(); syncBig(); });
 
   // як сюди потрапити: «⋮» → «Налаштування помічника» в чаті; кнопка профілю на головній
   document.addEventListener('click', e => {

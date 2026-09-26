@@ -14,11 +14,28 @@
 (() => {
   const B = Branch.overrides.b.data;
 
+  /** Маленький МГ праворуч у полі пошуку (головна, каталог): тап по ньому — чат,
+      по решті поля — як і раніше, екран пошуку. Видно, коли ввімкнено «МГ у пошуку»
+      (css/branches/c.css). Поле — кнопка, тож МГ — span із role="button". */
+  function mgInSearchBar(root) {
+    const bar = root.querySelector('.search-bar[data-go="search"]');
+    if (!bar) return;
+    bar.insertAdjacentHTML('beforeend', `
+      <span class="search-bar__mg" role="button" tabindex="0" aria-label="${DATA.mgSearch.label}">
+        <img src="${DATA.aiChat.avatar}" alt="">
+      </span>`);
+    const mg = bar.querySelector('.search-bar__mg');
+    const open = e => { e.stopPropagation(); e.preventDefault(); AiChat.open(); }; // не пускаємо до data-go
+    mg.addEventListener('click', open);
+    mg.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') open(e); });
+  }
+
   Branch.define('c', {
     data: {
-      home: { searchPlaceholder: B.home.searchPlaceholder },
-      catalog: { searchPlaceholder: B.catalog.searchPlaceholder },
-      search: B.search,
+      /* пошук натякає, що можна й запитати МГ — на «ти», коротко */
+      home: { searchPlaceholder: 'Шукай або запитай' },
+      catalog: { searchPlaceholder: 'Шукай або запитай' },
+      search: { ...B.search, placeholder: 'Шукай або запитай' },
       mg: { title: B.mg.title, catalog: B.mg.catalog, listing: B.mg.listing, pdp: B.mg.pdp, cart: B.mg.cart },
       // питання з пошуку («Що приготувати на вечерю?») → готовий сценарій чату за ключовими словами
       aiChat: {
@@ -32,6 +49,7 @@
         name: 'Машрум Геннадійович',
         subtitle: 'Знайомтеся: Машрум Геннадійович\u00A0— наш ШІ-помічник. Він так довго був грибом, що тепер, здається, трохи більше, ніж просто гриб.',
         showLabel: 'Показувати помічника',
+        bigToggle: 'Великий МГ', // той самий вимикач поза телефоном (під «Маленький МГ»)
         showHint: 'Кнопка МГ у кутку екрана. Змахнули його за край — він вимикається; увімкніть тут, щоб повернути.',
         skinsTitle: 'Помічник',
         lockedHint: 'Скоро', // підпис на закритих
@@ -61,8 +79,10 @@
         countForms: ['товар', 'товари', 'товарів'],
         maxItems: 8, // скільки карток показати в чаті
       },
-      /* Поза телефоном: перемикач «МГ у тегах» — аватарка МГ на початку рядка жовтих тегів */
-      mgAvatarToggle: { label: 'МГ у тегах', on: false }, // on — стан за замовчуванням
+      /* Поза телефоном: перемикач «Маленький МГ» — аватарка МГ на початку рядка жовтих тегів */
+      mgAvatarToggle: { label: 'Маленький МГ', on: false }, // on — стан за замовчуванням
+      /* Поза телефоном: «МГ у пошуку» — маленький МГ у полях пошуку (головна, каталог, екран пошуку) */
+      mgSearchToggle: { label: 'МГ у пошуку', on: true },
       mgDrag: {
         gone: 'Машрум сховався',
         back: 'Повернути',
@@ -70,10 +90,17 @@
       },
     },
     screens: {
+      /* Головна: у полі пошуку праворуч — маленький МГ (тап — чат) */
+      home(root, param) {
+        BaseScreens.home(root, param);
+        mgInSearchBar(root);
+      },
+
       /* Каталог: без нижньої стікі-панелі (пошук, чипси категорій, «доставка за 1 ₴»);
-         теги — під пошуком і «Акційними пропозиціями» */
+         теги — під пошуком і «Акційними пропозиціями»; у полі пошуку — маленький МГ */
       catalog(root, param) {
         BaseScreens.catalog(root, param);
+        mgInSearchBar(root);
         root.querySelector('.cat-bottom')?.remove();
         root.querySelector('.cat-top').insertAdjacentHTML('afterend', MG.block(DATA.mg.catalog, { compact: true }));
       },
@@ -132,23 +159,52 @@
 
   if (Branch.current !== 'c') return;
 
-  /* Поза телефоном, на місці перемикача вигляду острівця: чекбокс «МГ у тегах».
+  /* Поза телефоном, на місці перемикача вигляду острівця: чекбокс «Маленький МГ».
      Вимкнено — рядок тегів без аватарки МГ (css/branches/c.css, <html data-mg-avatar="off">).
-     Вибір памʼятається в браузері. */
+     Або великий МГ, або маленький: змахнули чи вимкнули великого (подія mg-enabled з
+     js/branches/c-drag.js) — «Маленький МГ» вмикається сам; повернули великого — вимикається.
+     Вручну тумблер перемикається як і раніше. Вибір памʼятається в браузері. */
   document.addEventListener('DOMContentLoaded', () => { // після App.init — DATA вже з даними гілки
     const T = DATA.mgAvatarToggle, key = 'silpo-c-mg-avatar-v2'; // -v2: з 25.09 за замовчуванням вимкнено, старий вибір не діє
     let on = T.on;
-    try { const v = localStorage.getItem(key); if (v != null) on = v === 'on'; } catch (e) { /* приватний режим */ }
-    const set = v => { document.documentElement.dataset.mgAvatar = v ? 'on' : 'off'; };
-    set(on);
+    try {
+      const v = localStorage.getItem(key);
+      if (v != null) on = v === 'on';
+      if (localStorage.getItem('silpo-c-mg-enabled') === 'off') on = true; // великого немає — маленький у тегах
+    } catch (e) { /* приватний режим */ }
     const box = document.createElement('label');
     box.className = 'chips-toggle mg-avatar-toggle';
-    box.innerHTML = `<span class="chips-toggle__label">${T.label}</span><input class="switch" type="checkbox" ${on ? 'checked' : ''}>`;
+    box.innerHTML = `<span class="chips-toggle__label">${T.label}</span><input class="switch" type="checkbox">`;
     document.body.append(box);
-    box.querySelector('input').addEventListener('change', e => {
-      set(e.target.checked);
-      try { localStorage.setItem(key, e.target.checked ? 'on' : 'off'); } catch (err) { /* ок */ }
-    });
+    const input = box.querySelector('input');
+    const set = v => {
+      document.documentElement.dataset.mgAvatar = v ? 'on' : 'off';
+      input.checked = v;
+      try { localStorage.setItem(key, v ? 'on' : 'off'); } catch (e) { /* ок */ }
+    };
+    set(on);
+    input.addEventListener('change', () => set(input.checked));
+    document.addEventListener('mg-enabled', e => set(!e.detail.on)); // або великий, або маленький
+  });
+
+  /* Поза телефоном, під «Великий МГ»: «МГ у пошуку» — окремо від «Маленького МГ».
+     Вимкнено — у полях пошуку МГ немає (<html data-mg-search="off">, css/branches/c.css). Памʼятається. */
+  document.addEventListener('DOMContentLoaded', () => {
+    const T = DATA.mgSearchToggle, key = 'silpo-c-mg-search';
+    let on = T.on;
+    try { const v = localStorage.getItem(key); if (v != null) on = v === 'on'; } catch (e) { /* приватний режим */ }
+    const box = document.createElement('label');
+    box.className = 'chips-toggle mg-search-toggle';
+    box.innerHTML = `<span class="chips-toggle__label">${T.label}</span><input class="switch" type="checkbox">`;
+    document.body.append(box);
+    const input = box.querySelector('input');
+    const set = v => {
+      document.documentElement.dataset.mgSearch = v ? 'on' : 'off';
+      input.checked = v;
+      try { localStorage.setItem(key, v ? 'on' : 'off'); } catch (e) { /* ок */ }
+    };
+    set(on);
+    input.addEventListener('change', () => set(input.checked));
   });
 
   /* Чат — як у гілці A, лише своє питання з пошуку спершу шукає готовий сценарій

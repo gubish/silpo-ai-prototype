@@ -71,23 +71,64 @@
 /* ---------- Пошук: МГ у правому нижньому куті тут немає ---------- */
 [data-branch="c"] .phone:has(#search.is-active) :is(.fab-stack, .mg-free) { display: none; }
 
-/* ---------- Поза телефоном: замість перемикача вигляду острівця — «МГ у тегах» ---------- */
+/* ---------- Поза телефоном: замість перемикача вигляду острівця — «Маленький МГ» ---------- */
 [data-branch="c"] .island-toggle { display: none; }
 [data-branch="c"] .mg-avatar-toggle { top: 180px; padding-right: var(--space-8); cursor: pointer; }
+/* під ним — вимикач великого МГ (js/branches/c-settings.js): 180 + 40 + 12 */
+[data-branch="c"] .mg-big-toggle { top: 232px; padding-right: var(--space-8); cursor: pointer; }
+/* під ним — «МГ у пошуку» (js/branches/c.js): 232 + 40 + 12 */
+[data-branch="c"] .mg-search-toggle { top: 284px; padding-right: var(--space-8); cursor: pointer; }
 /* вимкнено — рядок тегів без аватарки МГ, теги від звичайного відступу.
-   Але якщо великого МГ змахнули чи вимкнули (<html data-mg-corner="off">, js/branches/c-settings.js) —
-   маленький МГ у тегах зʼявляється сам: помічник лишається під рукою */
-[data-mg-avatar="off"]:not([data-mg-corner="off"]) .mg-block--compact .mg-block__ask { display: none; }
-[data-mg-avatar="off"]:not([data-mg-corner="off"]) .mg-block--compact { padding-left: 0; }
-[data-mg-avatar="off"]:not([data-mg-corner="off"]) .mg-block--compact .mg-chips { padding-left: var(--space-16); }
+   Змахнули чи вимкнули великого МГ — тумблер «Маленький МГ» вмикається сам (js/branches/c.js) */
+[data-mg-avatar="off"] .mg-block--compact .mg-block__ask { display: none; }
+[data-mg-avatar="off"] .mg-block--compact { padding-left: 0; }
+[data-mg-avatar="off"] .mg-block--compact .mg-chips { padding-left: var(--space-16); }
 
-/* ---------- Пошук: МГ праворуч від поля — кнопка в чат (js/branches/c-search.js) ---------- */
-[data-branch="c"] .search-mg { flex: none; width: 40px; height: 40px; padding: 0; border: 0; background: none; border-radius: 50%; }
-[data-branch="c"] .search-mg img { width: 40px; height: 40px; padding: 3px; border-radius: 50%; background: #fff6cc; object-fit: contain; }
-[data-branch="c"] .search-mg:active { transform: scale(0.94); }
-/* поле коротше: фільтр — лише коли є видача, без запасу місця під нього */
+/* ---------- Пошук: МГ у полі праворуч, після хрестика — кнопка в чат (js/branches/c-search.js) ----------
+   Просто сам маскот, без тла; трохи збільшений — видима частина картинки ≈ 85% квадрата */
+[data-branch="c"] .search-mg {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin: -4px 0; /* не роздуває висоту поля; справа — на сітці 16px, над хрестиками й плюсиками */
+  padding: 0;
+  border: 0;
+  background: none;
+}
+[data-branch="c"] .search-mg img { width: 32px; height: 32px; object-fit: contain; transform: scale(1.15); }
+[data-branch="c"] .search-mg:active img { transform: scale(1.05); }
+/* фільтр — лише коли є видача */
 [data-branch="c"] #search .search-head { gap: var(--space-12); }
 [data-branch="c"] #search:not(.has-query) .search-head__filter { display: none; }
 
-/* ---------- МГ біля пошуку — без жовтого кружечка, як аватарка в тегах (css/branches/b-mg.css) ---------- */
-[data-branch="c"] .search-mg img { padding: 0; border-radius: 0; background: none; transform: scale(1.15); }
+
+/* ---------- Пошук: хрестики без кружечка — тихіші за МГ у полі ----------
+   Поле, історія пошуку й підказки під час набору (розмітка — js/screens/search.js, js/branches/b-search.js):
+   картинку-кружечок підміняємо простим світлим «×» */
+[data-branch="c"] #search img[src$="circle-cancel.svg"] { content: url("../../assets/icons/close-light.svg"); }
+
+/* ---------- Пошук як у Яндексі: «Назад» у полі замість лінзи, поле на всю ширину (js/branches/c-search.js) ---------- */
+[data-branch="c"] #search .search-field { padding-left: var(--space-16); }
+[data-branch="c"] #search .search-field .search-head__icon { margin-right: var(--space-4); }
+/* сітка по 16px: поле й картки — 16px від краю екрана, всередині теж 16px; видача під полем
+   ще на 16px вужча — іконки рядків рівно під стрілкою «Назад», хрестики й плюсики — під МГ у полі */
+[data-branch="c"] #search .search-body { padding-left: var(--space-16); padding-right: var(--space-16); }
+/* поле — сіре, як пошук на головній (.search-bar, css/screens/home.css), без обводки й синьої рамки у фокусі */
+[data-branch="c"] #search .search-field,
+[data-branch="c"] #search .search-field:focus-within {
+  border: 0;
+  border-top: 1px solid var(--black-4);
+  background: var(--black-4);
+  box-shadow: var(--shadow-inner-light);
+  min-height: 48px; /* та сама висота, що на головній */
+}
+
+/* ---------- Маленький МГ у полях пошуку (головна, каталог — js/branches/c.js; екран пошуку — c-search.js) ---------- */
+[data-branch="c"] .search-bar__mg { flex: none; width: 32px; height: 32px; margin: -4px -6px -4px auto; cursor: pointer; }
+[data-branch="c"] .search-bar__mg img { width: 32px; height: 32px; object-fit: contain; transform: scale(1.15); }
+[data-branch="c"] .search-bar__mg:active img { transform: scale(1.05); }
+/* окремий тумблер «МГ у пошуку» (js/branches/c.js): вимкнено — у полях пошуку МГ немає */
+[data-mg-search="off"] :is(.search-bar__mg, .search-mg) { display: none; }
+/* картки категорій — краями рівно з полем пошуку (16px від краю), всередині 16px: іконка в стовпчик
+   з іконками історії (під стрілкою «Назад»), стрілка «›» — під хрестиками */
+[data-branch="c"] #search .search-cat { margin-left: calc(-1 * var(--space-16)); margin-right: calc(-1 * var(--space-16)); padding-left: var(--space-16); padding-right: var(--space-16); }

@@ -1,5 +1,6 @@
 /* =====================================================================
-   ГІЛКА C — МГ поруч із полем пошуку (кнопка праворуч, веде в чат).
+   ГІЛКА C — поле пошуку як у Яндексі: «Назад» у полі замість лінзи, поле на всю ширину,
+   праворуч у полі (після хрестика) — МГ, кнопка в чат.
    • Поле порожнє — чат із привітанням головної (стартові теги головної).
    • У полі запит («яблука») — чат одразу з ним: ваша репліка — запит,
      МГ показує знайдені товари, а під ними — жовті теги-наміри для цього
@@ -22,15 +23,19 @@ if (Branch.current === 'c') {
     return baseSuggest(args);
   };
 
-  /* Екран пошуку: той самий, лише праворуч від поля — МГ */
+  /* Екран пошуку: той самий, лише в полі праворуч (після хрестика) — МГ, як «ai» в Яндексі */
   const baseSearch = Screens.search;
   Screens.search = Object.assign(function renderSearchC(root, param) {
     baseSearch(root, param);
-    root.querySelector('.search-head').insertAdjacentHTML('beforeend', `
+    root.querySelector('.search-field').insertAdjacentHTML('beforeend', `
       <button class="search-mg" type="button" aria-label="${DATA.mgSearch.label}">
         <img src="${DATA.aiChat.avatar}" alt="">
       </button>`);
     root.querySelector('.search-mg').addEventListener('click', () => openChat(root));
+    // як у Яндексі: лінзи немає, стрілка «Назад» — у полі на її місці, поле на всю ширину
+    const field = root.querySelector('.search-field');
+    field.querySelector(':scope > img')?.remove();
+    field.prepend(root.querySelector('.search-head [data-back]'));
   }, baseSearch, { suggest });
 
   const isQuestion = text => {
