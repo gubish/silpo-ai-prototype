@@ -292,7 +292,8 @@ p, h1, h2, h3 { margin: 0; }
 .qr-card__hint { font-size: var(--fs-caption-sm, 12px); color: var(--black-72); }
 
 /* телефон займає майже всю ширину — кнопки перекривали б інтерфейс */
-@media (max-width: 720px) { .restart-btn, .chips-toggle, .qr-card { display: none; } } /* .island-toggle — теж .chips-toggle */
+/* (на телефоні перемикачі переносяться в шторку «Налаштування прототипу» — js/demo-panel.js, тож ховаємо лише ті, що в body) */
+@media (max-width: 720px) { body > .restart-btn, body > .chips-toggle, .qr-card { display: none; } } /* .island-toggle — теж .chips-toggle */
 /* низьке вікно — QR налазив би на перемикачі */
 @media (max-height: 520px) { .qr-card { display: none; } }
 
