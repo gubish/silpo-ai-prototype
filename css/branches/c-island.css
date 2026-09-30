@@ -22,13 +22,14 @@
 /* клякса: знімок із Figma ширший за рамку клякси (тінь і сяйво) — пропорції звідти ж:
    рамка 369.6×116.9, знімок 393×133, праворуч +12.5, знизу +5.5 */
 [data-branch="c"] .mg-island::before {
+  --blob-sx: 1.0633; --blob-sy: 1.1377; --blob-r: 0.0338; --blob-b: 0.047;
   content: "";
   position: absolute;
   z-index: 0;
-  right: calc(-2px - var(--blob-w) * 0.0338);
-  bottom: calc(var(--isl-cy) - var(--blob-h) / 2 - var(--blob-h) * 0.047 - var(--blob-dy));
-  width: calc(var(--blob-w) * 1.0633);
-  height: calc(var(--blob-h) * 1.1377);
+  right: calc(-2px - var(--blob-w) * var(--blob-r));
+  bottom: calc(var(--isl-cy) - var(--blob-h) / 2 - var(--blob-h) * var(--blob-b) - var(--blob-dy));
+  width: calc(var(--blob-w) * var(--blob-sx));
+  height: calc(var(--blob-h) * var(--blob-sy));
   background: url("../../assets/images/island/blob.png") center / 100% 100% no-repeat;
   transform-origin: calc(100% - 40px) 55%;
   /* слід за МГ: маска вдвічі ширша за кляксу — ліва половина прозора, права непрозора,
@@ -133,3 +134,15 @@
   [data-branch="c"] .mg-island.is-open::before { transition: none; animation: none; }
   [data-branch="c"] .mg-island__text, [data-branch="c"] .mg-island__close { filter: none; }
 }
+
+/* Біла «хмаринка» замість жовтої клякси (перемикач «Острівець · Жовтий | Білий» поза телефоном).
+   assets/images/island/blob-light.png — знімок blob-light-yellow.svg (SVG із Figma + жовтий перехід від МГ, @2x);
+   чисто біла — blob-light-plain.png (з blob-light.svg). Трохи вища за жовту */
+[data-branch="c"][data-island-color="white"] .mg-island::before {
+  background-image: url("../../assets/images/island/blob-light.png");
+  --blob-sx: 1.0633; --blob-sy: 1.172; --blob-r: 0.0338; --blob-b: 0.047;
+  --blob-dy: 12px; /* біла хмаринка вища за жовту — опущена сильніше */
+}
+/* під текстом — біла, а не жовта пляма; МГ світиться білим */
+[data-branch="c"][data-island-color="white"] .mg-island__text::before { background: #fff; }
+[data-branch="c"][data-island-color="white"] .mg-island.is-open > .ai-fab { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.95)); }

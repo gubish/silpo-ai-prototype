@@ -215,6 +215,8 @@
       mgAvatarToggle: { label: 'Маленький МГ', on: false }, // on — стан за замовчуванням
       /* Поза телефоном: «МГ у пошуку» — маленький МГ у полях пошуку (головна, каталог, екран пошуку) */
       mgSearchToggle: { label: 'МГ у пошуку', on: true },
+      /* Поза телефоном: колір клякси острівця — жовта чи біла «хмаринка» (css/branches/c-island.css) */
+      islandColorToggle: { label: 'Острівець', options: { yellow: 'Жовтий', white: 'Білий' }, value: 'yellow' },
       mgDrag: {
         gone: 'Машрум сховався',
         back: 'Повернути',
@@ -348,6 +350,29 @@
     };
     set(on);
     input.addEventListener('change', () => set(input.checked));
+  });
+
+  /* Поза телефоном, під «МГ у пошуку»: «Острівець · Жовтий | Білий» — колір клякси острівця
+     (<html data-island-color="white">, css/branches/c-island.css). Памʼятається в браузері. */
+  document.addEventListener('DOMContentLoaded', () => {
+    const T = DATA.islandColorToggle, key = 'silpo-c-island-color';
+    let value = T.value;
+    try { const v = localStorage.getItem(key); if (v in T.options) value = v; } catch (e) { /* приватний режим */ }
+    const box = document.createElement('div');
+    box.className = 'chips-toggle island-color-toggle';
+    box.setAttribute('role', 'group');
+    box.setAttribute('aria-label', 'Колір острівця');
+    box.innerHTML = `<span class="chips-toggle__label">${T.label}</span>`
+      + Object.entries(T.options).map(([k, label]) =>
+        `<button class="chips-toggle__btn" type="button" data-island-color-btn="${k}" aria-pressed="false">${label}</button>`).join('');
+    document.body.append(box);
+    const set = v => {
+      document.documentElement.dataset.islandColor = v;
+      box.querySelectorAll('[data-island-color-btn]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.islandColorBtn === v)));
+      try { localStorage.setItem(key, v); } catch (e) { /* ок */ }
+    };
+    set(value);
+    box.addEventListener('click', e => { const b = e.target.closest('[data-island-color-btn]'); if (b) set(b.dataset.islandColorBtn); });
   });
 
   /* Чат — як у гілці A, лише своє питання з пошуку спершу шукає готовий сценарій
