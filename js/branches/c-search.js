@@ -7,6 +7,8 @@
      запиту («Хочу солодкі яблука», «Яблука для шарлотки»…), ті самі, що в
      підказках пошуку (DATA.search.ai, js/branches/b.js).
    • Запит-питання («Що приготувати на вечерю?») — МГ відповідає як на повідомлення.
+   • Нічого не знайшли («молоко» — у демо-каталозі його немає) — під «нічого не знайшли»
+     рядок МГ із тегом (DATA.mgSearch.missChip), у чаті — відповідь DATA.mgSearch.missing.
    Закрили чат — знову пошук із тим самим запитом.
    Тексти — DATA.mgSearch (js/branches/c.js), стилі — css/branches/c.css.
    ===================================================================== */
@@ -14,6 +16,7 @@
 if (Branch.current === 'c') {
   const lower = s => s.toLocaleLowerCase('uk-UA');
   const fillQuery = (text, query) => text.split('{query}').join(query);
+  const esc = t => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
   let last = { query: '', ids: [] }; // що знайшли під час набору (підказки пошуку)
 
   // запамʼятовуємо товари, які пошук знайшов за поточним запитом
@@ -36,6 +39,18 @@ if (Branch.current === 'c') {
     const field = root.querySelector('.search-field');
     field.querySelector(':scope > img')?.remove();
     field.prepend(root.querySelector('.search-head [data-back]'));
+    // нічого не знайшли — МГ тут же, над «Можливо, ви шукаєте?»: тап — чат із цим запитом
+    const body = root.querySelector('.search-body');
+    new MutationObserver(() => {
+      const empty = body.querySelector('.search-empty');
+      const q = root.querySelector('.search-field input').value.trim();
+      if (!empty || !q || body.querySelector('.search-miss')) return;
+      empty.insertAdjacentHTML('afterend', `
+        <div class="search-miss">
+          <button class="mg-chip" type="button" data-search-mg>${fillQuery(DATA.mgSearch.missChip, esc(q))}</button>
+        </div>`);
+    }).observe(body, { childList: true });
+    body.addEventListener('click', e => { if (e.target.closest('[data-search-mg]')) openChat(root); });
   }, baseSearch, { suggest });
 
   const isQuestion = text => {
@@ -71,8 +86,13 @@ if (Branch.current === 'c') {
 
     const ids = last.query === query ? last.ids : [];
     const tags = chat.nodes(intentsFor(query, ids));
-    if (!ids.length && !tags.length) return chat.ask(query); // нічого не знайшли — МГ відповість як на питання
     const T = DATA.mgSearch;
+    // нічого не знайшли — МГ чесно каже, що в демо цього немає, і пропонує стартові теги
+    if (!ids.length && !tags.length) {
+      chat.push('user', query);
+      return chat.reply(fillQuery(T.missing, query), null,
+        DATA.aiChat.openers.map(o => ({ ...o, kind: 'opener' })), DATA.aiChat.fallbackMood);
+    }
     chat.push('user', query);
     const items = ids.slice(0, T.maxItems).map(id => ({ id }));
     const text = fillQuery(items.length ? T.found : T.notFound, query)

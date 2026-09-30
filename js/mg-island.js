@@ -148,25 +148,35 @@ const MgIsland = {
     AiChat.render();
     const r = ctx.reply;
     const items = (r.items || []).map(i => (typeof i === 'string' ? { id: i } : i));
-    AiChat.reply(this.fill(r.answer, items, r.countForms), items, AiChat.nodes(r.next), r.mood);
+    AiChat.reply(this.fill(r.answer, items, r.countForms), items, AiChat.nodes(r.next), r.mood,
+      r.after && { after: this.fill(r.after, items, r.countForms) }); // бульбашка під картками (гілка C)
   },
 
-  /** Підстановки у відповіді: {count} {countWord} {sum} — набір; {deliveryRules} {deliveryHere} — доставка
-      за тими самими правилами, що й у кошику (DATA.cart.delivery) */
+  /** Підстановки у відповіді: {count} {countWord} {sum} {sumRound} — набір (з копійками / без);
+      {deliveryRules} (в рядок) / {deliveryList} (по рядку на поріг), {deliveryHere} — доставка за тими самими правилами, що й у кошику (DATA.cart.delivery);
+      {min} — мінімальне замовлення; {left} — скільки докласти до найближчого дешевшого тарифу, {next} — його ціна */
   fill(text, items, forms) {
     const money = v => UI.money(v).replace('.00', '');
     const D = DATA.cart.delivery;
     const sum = items.reduce((t, i) => t + DATA.products[i.id].price, 0);
     const tiers = [...D.tiers].sort((a, b) => a.from - b.from);
-    const rules = [`до ${money(tiers[0].from)} — ${money(D.price)}`,
-      ...tiers.map(t => `від ${money(t.from)} — ${t.price <= 1 ? 'за ' : ''}${money(t.price)}`)].join(', ');
+    // є мінімальне замовлення — перший рядок «від 800 ₴», інакше «до 1 000 ₴»
+    const rows = [`${D.min ? `від ${money(D.min)}` : `до ${money(tiers[0].from)}`} — ${money(D.price)}`,
+      ...tiers.map(t => `від ${money(t.from)} — ${t.price <= 1 ? 'за ' : ''}${money(t.price)}`)];
+    const rules = rows.join(', ');
     let here = D.price;
     tiers.forEach(t => { if (sum >= t.from) here = t.price; });
+    const next = tiers.find(t => sum < t.from) || { from: sum, price: here }; // найближчий дешевший тариф
     return text
       .split('{count}').join(items.length)
       .split('{countWord}').join(forms ? aiPlural(items.length, forms) : '')
       .split('{sum}').join(money(sum))
+      .split('{sumRound}').join(money(Math.round(sum)))
+      .split('{min}').join(money(D.min || 0))
+      .split('{left}').join(money(Math.ceil(next.from - sum)))
+      .split('{next}').join(money(next.price))
       .split('{deliveryRules}').join(rules)
+      .split('{deliveryList}').join(rows.join('\n'))
       .split('{deliveryHere}').join(money(here));
   },
 

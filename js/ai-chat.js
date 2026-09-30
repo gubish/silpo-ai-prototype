@@ -461,7 +461,7 @@ const AiChat = {
     // аватар і підпис — лише над останньою відповіддю помічника (або «друкує…»);
     // старі відповіді — просто бульбашки, як історія листування
     let speaking = -1;
-    this.thread.forEach((m, i) => { if (m.from === 'bot' && !m.products) speaking = i; });
+    this.thread.forEach((m, i) => { if (m.from === 'bot' && !m.products && !m.cont) speaking = i; });
     // теги наступних кроків — лише під останньою відповіддю;
     // тег без відповіді показується, але неактивний (сценарій ще не зроблено)
     const tags = (m, i) => i === last && m.tags && m.tags.length ? `
@@ -473,7 +473,7 @@ const AiChat = {
         ${m.products.map(UI.plpCard).join('')}
       </div>
       ${tags(m, i)}` : `
-      <div class="ai-msg ai-msg--${m.from}">
+      <div class="ai-msg ai-msg--${m.from}${m.cont ? ' ai-msg--cont' : ''}">
         ${i === speaking ? avatar : ''}
         <div class="ai-bubble ${m.typing ? 'ai-bubble--typing' : ''}" data-msg="${i}">${m.typing ? '<i></i><i></i><i></i>' : ''}</div>
       </div>
@@ -507,8 +507,10 @@ const AiChat = {
 
   /** Відповідь помічника з паузою «друкує…»;
       products — картки під відповіддю, tags — теги наступних кроків у кінці,
-      mood — настрій Машрума у відповіді (DATA.aiChat.moods) */
-  reply(text, products, tags, mood) {
+      mood — настрій Машрума у відповіді (DATA.aiChat.moods),
+      extra.after — ще одна бульбашка МГ під картками, перед тегами (напр. сума й доставка набору:
+      там, де людина вирішує, а не над товарами, які вона розглядає) */
+  reply(text, products, tags, mood, extra) {
     const typing = { from: 'bot', typing: true };
     const session = this.session;
     this.thread.push(typing);
@@ -521,7 +523,9 @@ const AiChat = {
       const withCards = products && products.length;
       this.thread.push({ from: 'bot', text, tags: withCards ? null : tags });
       this.anchor = this.thread.length - 1; // цю відповідь — першою на екрані
-      if (withCards) this.thread.push({ from: 'bot', products, tags });
+      const after = withCards && extra && extra.after;
+      if (withCards) this.thread.push({ from: 'bot', products, tags: after ? null : tags });
+      if (after) this.thread.push({ from: 'bot', text: after, tags, cont: true }); // продовження: без аватара
       this.render();
     }, DATA.aiChat.replyDelay);
   },
@@ -548,7 +552,7 @@ const AiChat = {
   /** Картки під відповіддю: список items, правило rule або «схоже» */
   itemsFor(o, page) {
     if (o.similar) return this.similarTo(App.params.pdp);          // «Знайти схоже» на картці товару
-    if (o.rule) return this.pick(o, page);
+    if (o.rule || o.ids) return this.pick(o, page);                 // правило або свій список id
     const list = this.seasonal(o.items);
     if (list) {
       return list.map(it => {
@@ -607,7 +611,7 @@ const AiChat = {
      kind: 'opener'   — стартовий тег (після відповіді на своє питання);
            'followUp' — уточнення добірки фруктів (флоу «Сезонні фрукти»);
            'node'     — крок сценарію з DATA.aiChat.openers[…].next. */
-  isLive(t) { return t.kind !== 'node' || Boolean(t.answer); },
+  isLive(t) { return t.kind !== 'node' || Boolean(t.answer || t.go); },
 
   /** Теги наступного кроку; рядок — id спільного тегу з DATA.aiChat.openers */
   nodes(list) {
@@ -626,6 +630,7 @@ const AiChat = {
 
   /** Крок сценарію: відповідь, картки (або дія) і теги наступного кроку */
   runNode(n) {
+    if (n.go) return this.pushTo(n.go, n.param); // тег-перехід («Оформити замовлення» → кошик); «Назад» — знову в чат
     this.push('user', n.label);
     let items = null, count = 0;
     if (n.action === 'addAll' || n.action === 'addItems') {

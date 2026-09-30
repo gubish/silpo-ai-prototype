@@ -111,6 +111,8 @@
 /* аватар маскота — над повідомленням, щоб бульбашка, теги й картки
    займали всю ширину від лівого до правого відступу */
 .ai-msg--bot { flex-direction: column; align-items: flex-start; gap: var(--space-6); }
+/* продовження репліки під картками (reply(..., { after })) — ближче до карток, як одна репліка */
+.ai-products + .ai-msg--cont { margin-top: calc(var(--space-8) - 20px); }
 .ai-msg__author { display: flex; align-items: center; gap: var(--space-8); }
 .ai-msg__avatar { width: 32px; height: 32px; flex-shrink: 0; }
 /* живий Rive-аватар: шари-канваси всередині (js/ai-assistant.js) */

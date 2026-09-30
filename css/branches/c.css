@@ -132,3 +132,10 @@
 /* картки категорій — краями рівно з полем пошуку (16px від краю), всередині 16px: іконка в стовпчик
    з іконками історії (під стрілкою «Назад»), стрілка «›» — під хрестиками */
 [data-branch="c"] #search .search-cat { margin-left: calc(-1 * var(--space-16)); margin-right: calc(-1 * var(--space-16)); padding-left: var(--space-16); padding-right: var(--space-16); }
+
+/* Каталог: добірки з продакшену («Тільки онлайн», «Святку з Jacobs») у демо нікуди не ведуть —
+   без реакції на тап (рядок і далі гортається пальцем) */
+[data-branch="c"] .cat-chips .choice-chip { pointer-events: none; -webkit-tap-highlight-color: transparent; }
+
+/* Пошук: рядок МГ під «нічого не знайшли» (js/branches/c-search.js) */
+[data-branch="c"] .search-miss { margin: var(--space-12) 0 var(--space-4); }

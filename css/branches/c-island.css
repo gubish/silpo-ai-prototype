@@ -16,6 +16,7 @@
   /* рамка клякси в Figma: від лівого краю «пігулки» до правого краю ×, трохи ширша з боків */
   --blob-w: calc(var(--isl-w) + var(--isl-gap) + var(--isl-close) + 12px);
   --blob-h: 117px;
+  --blob-dy: 5px;    /* клякса трохи нижче за текст, МГ і × — щоб текст не «провалювався» в ній */
 }
 
 /* клякса: знімок із Figma ширший за рамку клякси (тінь і сяйво) — пропорції звідти ж:
@@ -25,7 +26,7 @@
   position: absolute;
   z-index: 0;
   right: calc(-2px - var(--blob-w) * 0.0338);
-  bottom: calc(var(--isl-cy) - var(--blob-h) / 2 - var(--blob-h) * 0.047);
+  bottom: calc(var(--isl-cy) - var(--blob-h) / 2 - var(--blob-h) * 0.047 - var(--blob-dy));
   width: calc(var(--blob-w) * 1.0633);
   height: calc(var(--blob-h) * 1.1377);
   background: url("../../assets/images/island/blob.png") center / 100% 100% no-repeat;
