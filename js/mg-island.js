@@ -8,7 +8,8 @@
                   Машрум відкочується в її лівий край і трохи зменшується,
                   поруч — текст; на місці грибочка — білий круглий хрестик.
    • Тап по тексту — чат: звернення МГ + його продовження з товарами й тегами.
-   • Тап по Машруму — як завжди, чат (острівець згортається).
+   • Тап по Машруму — як завжди, чат (острівець згортається);
+     з DATA.aiChat.island.fabContinues (гілка C) — те саме, що тап по тексту.
    • Хрестик, Esc, перехід на інший екран — згорнути.
    • Тригер для тесту — головна: проскролили «Тільки онлайн», зʼявився банер за ним.
      DATA.aiChat.island.repeat: true — щоразу, як банер знову заїжджає на екран (демо);
@@ -43,7 +44,15 @@ const MgIsland = {
 
     this.text.addEventListener('click', () => this.activate());
     root.querySelector('.mg-island__close').addEventListener('click', () => this.hide());
-    fab.addEventListener('click', () => this.hide(), true); // чат відкриє js/ai-chat.js
+    fab.addEventListener('click', e => {
+      // DATA.aiChat.island.fabContinues (гілка C): тап по МГ, поки він говорить, — те саме, що тап по тексту
+      if (this.isOpen() && DATA.aiChat.island.fabContinues) {
+        e.stopPropagation(); // не пускаємо до js/ai-chat.js — там звичайне привітання
+        this.activate();
+        return;
+      }
+      this.hide(); // чат відкриє js/ai-chat.js
+    }, true);
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && this.isOpen()) this.hide(); });
     document.addEventListener('screenchange', () => this.hide());
 
@@ -120,7 +129,7 @@ const MgIsland = {
     if (!ctx) return;
     this.context = ctx;
     this.layout();
-    this.text.textContent = ctx.text;
+    this.text.textContent = UI.nbspMoney(ctx.text);
     this.live.textContent = ctx.text;
     this.root.querySelector('.mg-island__surface').inert = false;
     this.root.querySelector('.mg-island__close').inert = false;
@@ -154,7 +163,8 @@ const MgIsland = {
 
   /** Підстановки у відповіді: {count} {countWord} {sum} {sumRound} — набір (з копійками / без);
       {deliveryRules} (в рядок) / {deliveryList} (по рядку на поріг), {deliveryHere} — доставка за тими самими правилами, що й у кошику (DATA.cart.delivery);
-      {min} — мінімальне замовлення; {left} — скільки докласти до найближчого дешевшого тарифу, {next} — його ціна */
+      {min} — мінімальне замовлення; {left} — скільки докласти до найближчого дешевшого тарифу, {next} — його ціна;
+      {bestFrom} {best} — з якої суми найдешевша доставка і її ціна */
   fill(text, items, forms) {
     const money = v => UI.money(v).replace('.00', '');
     const D = DATA.cart.delivery;
@@ -175,6 +185,8 @@ const MgIsland = {
       .split('{min}').join(money(D.min || 0))
       .split('{left}').join(money(Math.ceil(next.from - sum)))
       .split('{next}').join(money(next.price))
+      .split('{bestFrom}').join(money(tiers[tiers.length - 1].from))
+      .split('{best}').join(money(tiers[tiers.length - 1].price))
       .split('{deliveryRules}').join(rules)
       .split('{deliveryList}').join(rows.join('\n'))
       .split('{deliveryHere}').join(money(here));

@@ -481,7 +481,7 @@ const AiChat = {
     // текст вставляємо окремо, щоб повідомлення ніколи не читалося як розмітка
     this.threadEl.querySelectorAll('.ai-bubble[data-msg]').forEach(b => {
       const m = this.thread[b.dataset.msg];
-      if (!m.typing) b.textContent = m.text;
+      if (!m.typing) b.textContent = UI.nbspMoney(m.text);
     });
     // каруселі товарів: тягнуться мишею, «+» показує кількість з кошика
     this.threadEl.querySelectorAll('.ai-products').forEach(enableDragScroll);

@@ -135,7 +135,7 @@
   [data-branch="c"] .mg-island__text, [data-branch="c"] .mg-island__close { filter: none; }
 }
 
-/* Біла «хмаринка» замість жовтої клякси (перемикач «Острівець · Жовтий | Білий» поза телефоном).
+/* Біла «хмаринка» замість жовтої клякси (перемикач «Острівець · I | II | III», варіант II поза телефоном).
    assets/images/island/blob-light.png — знімок blob-light-yellow.svg (SVG із Figma + жовтий перехід від МГ, @2x);
    чисто біла — blob-light-plain.png (з blob-light.svg). Трохи вища за жовту */
 [data-branch="c"][data-island-color="white"] .mg-island::before {
@@ -146,3 +146,33 @@
 /* під текстом — біла, а не жовта пляма; МГ світиться білим */
 [data-branch="c"][data-island-color="white"] .mg-island__text::before { background: #fff; }
 [data-branch="c"][data-island-color="white"] .mg-island.is-open > .ai-fab { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.95)); }
+
+/* Фіолетова «хмаринка» (перемикач «Острівець · I | II | III», варіант III): assets/images/island/blob-purple.png —
+   знімок blob-purple.svg із Figma (381×122, @2x; заливка щільніша, ніж у макеті: 90% замість 80%), жовте біля МГ уже в самій картинці.
+   Масштаб — як у Figma відносно рамки клякси (--blob-w ≈ 369.6 одиниць макета);
+   круглий кінець контуру (центр x ≈ 346) — під ×, а × стоїть посередині слота (right: 50%) */
+[data-branch="c"][data-island-color="purple"] .mg-island::before {
+  --pk: calc(var(--blob-w) / 369.6);
+  --pkx: calc(var(--pk) + 7px / 342);  /* по горизонталі контур на ~7px довший за макет (342 одиниці) */
+  background-image: url("../../assets/images/island/blob-purple.png");
+  width: calc(var(--pkx) * 381);
+  height: calc(var(--pk) * 122);
+  right: calc(50% - var(--pk) * 35 - 10px);                           /* правий край — на ~10px правіше, ніж гулька (x 346) під ×; лівий край контуру — ~24px від краю телефона */
+  bottom: calc(var(--isl-cy) - var(--pk) * 64.1 - var(--blob-dy));    /* центр контуру — y 57.9 з 122 */
+  /* трохи нахилена проти годинникової стрілки навколо МГ (жовта пляма, x 74): центр круглого кінця
+     (x 346, y 62) — точно під × і на телефоні, і на десктопі (виміряно: −1.9…−2.0°).
+     Окрема властивість rotate, бо transform зайнятий «диханням» */
+  transform-origin: 19.4% 47.5%;
+  rotate: -2deg;
+}
+[data-branch="c"][data-island-color="purple"] .mg-island__text::before { background: #fff; }
+/* III: МГ і текст — на 10px далі від лівого краю телефона (у I і II — 16px) */
+[data-branch="c"][data-island-color="purple"] .mg-island { --isl-edge: 26px; }
+
+/* зона тапу по тексту — на всю висоту «пігулки» (у текст в один рядок важко влучити):
+   невидимий ::after ширший і вищий за сам текст (::before зайнятий жовтою плямою) */
+[data-branch="c"] .mg-island__text::after {
+  content: "";
+  position: absolute;
+  inset: -24px -8px -24px -12px;
+}

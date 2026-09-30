@@ -91,15 +91,16 @@
         /* Острівець на головній (js/mg-island.js): без «Вперше тут?» — пропозиція для всіх.
            answer — коротко над товарами; after — друга бульбашка МГ під товарами, перед тегами:
            сума, правило доставки й скільки докласти — там, де людина вирішує (над товарами губилось).
-           Суми й пороги — з DATA.cart.delivery ({sumRound} {deliveryHere} {deliveryList} {min} {left} {next}). */
+           Суми й пороги — з DATA.cart.delivery ({sumRound} {deliveryHere} {left} {next} {bestFrom} {best}; є ще {deliveryList} {min}). */
         island: {
+          fabContinues: true, // тап по МГ, поки острівець відкритий, — продовження звернення, а не привітання
           home: {
-            text: 'Давай зберу тобі кошик?',
+            text: 'Пссс, зібрати вам кошик?',
             reply: {
-              answer: 'Ось базовий кошик на кілька днів:',
+              answer: 'Ось, зібрав дещо на кілька днів',
               items: [{ id: 'tomatoes', badges: ['cinotyzhyky', 'percent'] }, { id: 'cabbage' }, { id: 'banana' },
                       { id: 'appleGolden' }, { id: 'water15', badges: ['myOffer'] }, { id: 'hellmanns' }],
-              after: 'Разом {sumRound}, доставка — {deliveryHere}.\n\nДоставляємо від {min}, а ціна залежить від суми:\n{deliveryList}\n\nДо доставки за {next} не вистачає {left}.',
+              after: 'Такс, порахуємо.\nЗа все виходить {sumRound}, доставка — {deliveryHere}.\nАле я б докинув ще щось на {left} — тоді доставка буде за {next}.\nА для кошиків від {bestFrom} доставка взагалі за {best}. Ні на що не натякаю 👀',
               next: [
                 { label: 'Покласти все в кошик', action: 'addAll', countForms: ['товар', 'товари', 'товарів'],
                   answer: 'Поклав {count} {countWord}. У кошику на {total}.',
@@ -215,8 +216,8 @@
       mgAvatarToggle: { label: 'Маленький МГ', on: false }, // on — стан за замовчуванням
       /* Поза телефоном: «МГ у пошуку» — маленький МГ у полях пошуку (головна, каталог, екран пошуку) */
       mgSearchToggle: { label: 'МГ у пошуку', on: true },
-      /* Поза телефоном: колір клякси острівця — жовта чи біла «хмаринка» (css/branches/c-island.css) */
-      islandColorToggle: { label: 'Острівець', options: { yellow: 'Жовтий', white: 'Білий' }, value: 'yellow' },
+      /* Поза телефоном: колір клякси острівця — жовта, біла чи фіолетова «хмаринка» (css/branches/c-island.css) */
+      islandColorToggle: { label: 'Острівець', options: { yellow: 'I', white: 'II', purple: 'III' }, value: 'yellow' },
       mgDrag: {
         gone: 'Машрум сховався',
         back: 'Повернути',
@@ -352,7 +353,7 @@
     input.addEventListener('change', () => set(input.checked));
   });
 
-  /* Поза телефоном, під «МГ у пошуку»: «Острівець · Жовтий | Білий» — колір клякси острівця
+  /* Поза телефоном, під «МГ у пошуку»: «Острівець · I | II | III» (жовтий, білий, фіолетовий) — колір клякси острівця
      (<html data-island-color="white">, css/branches/c-island.css). Памʼятається в браузері. */
   document.addEventListener('DOMContentLoaded', () => {
     const T = DATA.islandColorToggle, key = 'silpo-c-island-color';
