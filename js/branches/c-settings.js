@@ -80,7 +80,12 @@ if (Branch.current === 'c') {
 
   /* Поза телефоном, під «Маленький МГ»: той самий вимикач великого МГ, що й на екрані налаштувань */
   let bigToggle = null;
-  const syncBig = () => { if (bigToggle) bigToggle.checked = MgDrag.isEnabled(); };
+  // вимикач «Великий МГ» + <html data-mg-big="on|off">: вимкнено — ховаються «Острівець» і «Показати острівець» (css/branches/c.css)
+  const syncBig = () => {
+    const on = MgDrag.isEnabled();
+    if (bigToggle) bigToggle.checked = on;
+    document.documentElement.dataset.mgBig = on ? 'on' : 'off';
+  };
 
   document.addEventListener('DOMContentLoaded', () => { // після App.init
     MgSettings.applySkin(MgSettings.skin(), false);

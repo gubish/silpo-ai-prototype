@@ -8,7 +8,8 @@
    • Викинули за межі екрана (або різко жбурнули до краю) — МГ зникає:
      «відмахнувся й вимкнув». Внизу — «Машрум сховався · Повернути»;
      «На початок» теж повертає його в кут.
-   • Поки МГ не в кутку, острівець (js/mg-island.js) не заговорює.
+   • МГ не в кутку, а острівцю час заговорити — МГ гасне там, де стоїть, і проявляється в кутку з острівцем;
+     закрили (хрестик, чат, інший екран) — гасне в кутку й проявляється там, де залишили (home / goBack). Без перельотів.
    • Викинутий МГ лишається вимкненим і після перезапуску — увімкнути назад можна
      вимикачем у «Налаштуваннях помічника» (js/branches/c-settings.js) або «Повернути».
    Тексти — DATA.mgDrag (js/branches/c.js), стилі — css/branches/c-drag.css.
@@ -44,10 +45,21 @@ const MgDrag = {
     // вимкнули раніше (змахнули за край чи вимикачем у «Налаштуваннях помічника») — не показуємо
     if (!this.isEnabled()) this.el.hidden = true;
 
-    // поки МГ не в кутку, острівець мовчить
+    // МГ не в кутку — щоб заговорити, спершу прилітає в куток (home), острівець закрився — летить назад (goBack)
     if (typeof MgIsland !== 'undefined') {
       const speak = MgIsland.speak.bind(MgIsland);
-      MgIsland.speak = key => (this.free || this.el.hidden ? undefined : speak(key));
+      MgIsland.speak = (key, opts) => {
+        if (this.el.hidden) return;
+        if (this.free) return this.home(() => speak(key, opts));
+        speak(key, opts);
+      };
+      const hide = MgIsland.hide.bind(MgIsland);
+      MgIsland.hide = () => {
+        hide();
+        // острівець III (js/branches/c-island3.js) повертає МГ сам, коли згортається
+        if (!this.borrowed || (typeof MgWidget !== 'undefined' && MgWidget.dock)) return;
+        setTimeout(() => { if (!MgIsland.isOpen()) this.goBack(); }, 550); // спершу острівець згортається
+      };
     }
   },
 
@@ -163,6 +175,7 @@ const MgDrag = {
 
   /** Відриваємо МГ від кута: тепер він живе в телефоні сам по собі, на тому ж місці */
   lift() {
+    this.borrowed = null; // потягнули з кутка, поки говорив, — нове місце вже не «позичене»
     if (typeof MgIsland !== 'undefined') MgIsland.hide();
     const r = this.el.getBoundingClientRect(), ph = this.phoneRect();
     if (!this.free) {
@@ -219,8 +232,45 @@ const MgDrag = {
     }, 320);
   },
 
+  /** Позичити МГ у кутку: перетягнутий МГ гасне там, де стояв, і проявляється в кутку, щоб заговорити
+      (острівці I, II, III) — без перельоту через екран. Де стояв — памʼятаємо (borrowed), goBack() поверне.
+      Не перетягнутий — одразу cb */
+  home(cb) {
+    if (!this.free || this.el.hidden) return cb();
+    this.borrowed = { ...this.pos };
+    this.fade(0, () => {
+      this.el.classList.remove('mg-free', 'is-settling');
+      this.el.style.left = this.el.style.top = '';
+      this.stack.append(this.el);
+      this.free = false;
+      cb();            // острівець (чи віджет III) зʼявляється вже з кутка
+      this.fade(1);
+    });
+  },
+
+  /** Острівець закрився — МГ гасне в кутку й проявляється там, де його залишили */
+  goBack() {
+    const p = this.borrowed;
+    this.borrowed = null;
+    if (!p || this.free || this.el.hidden) return;
+    this.fade(0, () => {
+      this.phone.append(this.el);
+      this.el.classList.add('mg-free');
+      this.free = true;
+      this.place(this.clamp(p), false);
+      this.fade(1);
+    });
+  },
+
+  /** Грибочок м'яко гасне (0) чи проявляється (1); then — коли догас */
+  fade(to, then) {
+    const a = this.fab.animate([{ opacity: to ? 0 : 1 }, { opacity: to }], { duration: to ? 250 : 200, easing: 'ease' });
+    if (then) a.finished.then(then, then);
+  },
+
   /** МГ знову в кутку, як на старті */
   restore() {
+    this.borrowed = null;
     this.hideToast();
     this.el.classList.remove('mg-free', 'is-settling', 'is-dragging', 'is-leaving');
     this.el.style.left = this.el.style.top = '';

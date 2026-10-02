@@ -75,9 +75,9 @@
 [data-branch="c"] .island-toggle { display: none; }
 [data-branch="c"] .mg-avatar-toggle { top: 180px; padding-right: var(--space-8); cursor: pointer; }
 /* під ним — вимикач великого МГ (js/branches/c-settings.js): 180 + 40 + 12 */
-[data-branch="c"] .mg-big-toggle { top: 232px; padding-right: var(--space-8); cursor: pointer; }
+[data-branch="c"] .mg-big-toggle { top: 284px; padding-right: var(--space-8); cursor: pointer; } /* три останні: «Великий МГ», «Острівець», «Показати острівець» */
 /* під ним — «МГ у пошуку» (js/branches/c.js): 232 + 40 + 12 */
-[data-branch="c"] .mg-search-toggle { top: 284px; padding-right: var(--space-8); cursor: pointer; }
+[data-branch="c"] .mg-search-toggle { top: 232px; padding-right: var(--space-8); cursor: pointer; }
 /* вимкнено — рядок тегів без аватарки МГ, теги від звичайного відступу.
    Змахнули чи вимкнули великого МГ — тумблер «Маленький МГ» вмикається сам (js/branches/c.js) */
 [data-mg-avatar="off"] .mg-block--compact .mg-block__ask { display: none; }
@@ -139,5 +139,7 @@
 
 /* Пошук: рядок МГ під «нічого не знайшли» (js/branches/c-search.js) */
 [data-branch="c"] .search-miss { margin: var(--space-12) 0 var(--space-4); }
-[data-branch="c"] .island-color-toggle { top: 336px; } /* під «МГ у пошуку»: 284 + 40 + 12 */
+[data-branch="c"] .island-color-toggle { top: 336px; } /* під «Великий МГ»: 284 + 40 + 12 */
 [data-branch="c"] .island-on-toggle { top: 388px; padding-right: var(--space-8); cursor: pointer; } /* останнім: показати / сховати острівець */
+/* великого МГ вимкнено — острівцям нема з ким зʼявлятися: обидва вимикачі острівця ховаємо */
+[data-branch="c"][data-mg-big="off"] :is(.island-color-toggle, .island-on-toggle) { display: none; }

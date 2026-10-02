@@ -18,6 +18,9 @@
    • Згорнутий віджет виглядає точно як звичайний кутовий МГ (без «спори», з тінню, на тому ж місці —
      MgWidget.align), тож між головною й іншими екранами МГ не змінюється.
    • Інший екран — грибочок повертається у свій кутовий слот (там віджета немає).
+   • Згорнутий віджет тягнеться й змахується, як звичайний МГ. МГ перетягнутий — віджета немає, МГ стоїть,
+     де залишили; тригер — МГ гасне там і проявляється в кутку (MgDrag.home), віджет розгортається;
+     згорнули / інший екран — МГ гасне й проявляється на своєму місці (MgDrag.goBack).
    Тексти пропозицій — DATA.mgWidget.skills (js/branches/c.js), стилі — css/branches/c-island3.css.
    ===================================================================== */
 
@@ -31,7 +34,10 @@ if (Branch.current === 'c') {
 
     /** Віджет на головній: є, коли увімкнено III і відкрита головна; інакше — прибраний, МГ — у кутку */
     sync() {
-      const want = this.on() && App.current && App.current.id === 'home';
+      const drag = typeof MgDrag !== 'undefined' ? MgDrag : null;
+      // МГ перетягнутий чи схований — віджета нема: МГ стоїть, де його залишили; заговорить — прилетить (open)
+      const away = drag && (drag.free || (drag.el && drag.el.hidden));
+      const want = this.on() && App.current && App.current.id === 'home' && !away;
       if (want) this.mount(document.getElementById('home')); else this.unmount();
     },
 
@@ -54,6 +60,10 @@ if (Branch.current === 'c') {
       face.slot = 'face';
       el.append(face);
       el.addEventListener('mashrum-cta', e => { e.preventDefault(); this.chat(); }); // без вбудованого демо
+      // згорнули, а МГ «позичали» з іншого місця — після згортання (0.62 с) віджет геть, МГ летить назад
+      el.addEventListener('mashrum-collapse', () => setTimeout(() => {
+        if (this.el === el && this.isMin() && typeof MgDrag !== 'undefined' && MgDrag.borrowed) this.unmount();
+      }, 700));
       // розгорнутий: тап будь-де по віджету (текст, тіло, МГ) — теж чат; лише хрестик згортає
       el.addEventListener('click', e => {
         if (el.isMin()) return;
@@ -92,6 +102,15 @@ if (Branch.current === 'c') {
       this.dock.remove();
       this.dock = this.el = null;
       document.documentElement.classList.remove('mi-on');
+      if (typeof MgDrag !== 'undefined' && MgDrag.borrowed) MgDrag.goBack(); // МГ «позичали» з іншого місця — назад
+    },
+
+    /** Розгорнутись (тригер прокрутки чи вмикач): МГ перетягнутий — спершу прилітає в куток */
+    open() {
+      const drag = typeof MgDrag !== 'undefined' ? MgDrag : null;
+      if (drag && drag.el && drag.el.hidden) return;
+      if (drag && drag.free) return drag.home(() => { this.sync(); requestAnimationFrame(() => this.expand()); });
+      this.expand();
     },
 
     isMin() { return Boolean(this.el && this.el.isMin && this.el.isMin()); },
@@ -111,7 +130,7 @@ if (Branch.current === 'c') {
         visible = seen;
         if (!cameIn || !down || !this.on() || !App.current || App.current.id !== 'home') return;
         if (typeof AiChat !== 'undefined' && AiChat.el && !AiChat.el.hidden) return;
-        this.expand();
+        this.open();
       }, { threshold: 0.6 });
       // головну перемальовують — новий банер
       const observe = () => {
@@ -140,8 +159,23 @@ if (Branch.current === 'c') {
     e.stopPropagation();
     MgWidget.chat();
   }, true);
-  // у віджеті МГ не перетягується (js/branches/c-drag.js слухає pointerdown на самому грибочку)
-  document.addEventListener('pointerdown', e => { if (e.target.closest('.mi-face')) e.stopPropagation(); }, true);
+  // згорнутий віджет = звичайний кутовий МГ: його можна перетягнути чи змахнути (js/branches/c-drag.js).
+  // На дотик віджет тихо прибираємо — грибочок уже в кутовому слоті на тому ж місці, далі все як завжди;
+  // не потягнули (тап) — віджет повертається. Розгорнутий — не тягнеться.
+  document.addEventListener('pointerdown', e => {
+    if (!e.target.closest('.mi-face')) return;
+    if (!MgWidget.isMin()) { e.stopPropagation(); return; }
+    MgWidget.unmount();
+    const back = () => {
+      document.removeEventListener('pointerup', back, true);
+      document.removeEventListener('pointercancel', back, true);
+      setTimeout(() => MgWidget.sync(), 350); // після кліку (чат) і після «влягання» МГ; перетягнутий — віджета нема
+    };
+    document.addEventListener('pointerup', back, true);
+    document.addEventListener('pointercancel', back, true);
+  }, true);
+  // «Повернути» / вимикач у налаштуваннях — МГ знову в кутку: віджет на місце
+  document.addEventListener('mg-enabled', () => setTimeout(() => MgWidget.sync(), 500));
 
   document.addEventListener('screenchange', () => MgWidget.sync());
   // кутовий слот посунувся (плашка кошика, зміна розміру) — підрівнюємо згорнутого МГ
@@ -161,8 +195,11 @@ if (Branch.current === 'c') {
     MgWidget.sync();
     // головну перемальовують («На початок») — віджет вертається на місце
     const home = document.getElementById('home');
+    // (лише коли головну справді перемалювали — віджет зник разом зі старою розміткою; власне прибирання не рахуємо)
     if (home) new MutationObserver(() => {
-      if (MgWidget.dock && !MgWidget.dock.isConnected) MgWidget.dock = MgWidget.el = null;
+      if (!MgWidget.dock || MgWidget.dock.isConnected) return;
+      MgWidget.dock = MgWidget.el = null;
+      document.documentElement.classList.remove('mi-on');
       MgWidget.sync();
     }).observe(home, { childList: true });
     if (typeof MgIsland === 'undefined') return;
@@ -170,8 +207,8 @@ if (Branch.current === 'c') {
     // { force: true } — вмикач «Показати острівець» (js/branches/c.js)
     const speak = MgIsland.speak.bind(MgIsland);
     MgIsland.speak = (key, opts) => {
-      if (!MgWidget.on() || key !== 'home') return speak(key);
-      if (opts && opts.force) MgWidget.expand();
+      if (!MgWidget.on() || key !== 'home') return speak(key, opts);
+      if (opts && opts.force) MgWidget.open();
     };
     MgWidget.watch();
   }))));

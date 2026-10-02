@@ -1,3 +1,5 @@
 .DS_Store
 *.swp
 .claude/
+# службові профілі headless Chrome (тести) — не комітити
+*-prof*/
