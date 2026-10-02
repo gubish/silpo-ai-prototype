@@ -1,0 +1,39 @@
+/* =====================================================================
+   ГІЛКА C — острівець III: віджет <mashrum-island> над таб-баром (js/branches/c-island3.js).
+   Стилі й анімації самого віджета — у ньому (Shadow DOM); тут — місце на екрані й наш МГ.
+   ===================================================================== */
+
+/* впритул над таб-баром, «прилипає» разом з ним; під таб-баром (z 30) — світіння ховається під меню */
+/* висота 0 — віджет не займає місця в сторінці (інакше в кінці головної — порожні 85px над таб-баром):
+   «прилипає» нульова смужка, а сам віджет висить над нею (absolute, низом до таб-бару) */
+[data-branch="c"] .mi-dock {
+  position: sticky;
+  bottom: calc(var(--tabbar-h) + var(--home-indicator-h));
+  z-index: 29;
+  height: 0;
+}
+[data-branch="c"] .mi-dock mashrum-island { display: block; position: absolute; left: 0; right: 0; bottom: 0; }
+
+/* наш Rive-МГ в обличчі віджета (54×56): слот 76×112, центр видимого грибочка (38, 72) — у центрі обличчя */
+[data-branch="c"] .mi-face { position: absolute; inset: 0; }
+[data-branch="c"] .mi-face > .ai-fab {
+  position: absolute;
+  left: calc(50% - 38px);
+  top: calc(50% - 72px);
+  transform-origin: 38px 72px;
+  filter: none; /* розгорнутий: тінь кутової кнопки — зайва на «молочному» тілі */
+  will-change: transform; /* свій шар на GPU: живий Rive-канвас не перемальовується, поки острів змінює ширину */
+  /* розгорнутий віджет: МГ «підходить ближче» — більшає й опускається; підборіддя ховається за таб-бар
+     (низ віджета обрізаний самим віджетом по стику з таб-баром). Той самий темп, що й рідне розгортання */
+  transform: translateY(14px) scale(1.15);
+  transition: transform 620ms cubic-bezier(0.32, 0.86, 0.18, 1), filter 400ms ease;
+}
+/* згорнутий — точно як звичайний кутовий МГ на інших екранах: той самий розмір, тінь і місце
+   (--mi-dx/--mi-dy — зсув від обличчя віджета до кутового слота, рахує js/branches/c-island3.js) */
+[data-branch="c"] mashrum-island[min] .mi-face > .ai-fab {
+  transform: translate(var(--mi-dx, 0px), var(--mi-dy, 0px));
+  filter: drop-shadow(0 8px 18px rgba(20, 30, 50, 0.28)); /* як у .ai-fab (css/base.css) */
+}
+
+/* поки МГ у віджеті, порожній кутовий слот на головній невидимий (місце тримає — QR не стрибає) */
+[data-branch="c"].mi-on .phone:has(#home.is-active) .fab-stack .mg-island { visibility: hidden; }

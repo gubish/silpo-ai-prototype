@@ -216,8 +216,21 @@
       mgAvatarToggle: { label: 'Маленький МГ', on: false }, // on — стан за замовчуванням
       /* Поза телефоном: «МГ у пошуку» — маленький МГ у полях пошуку (головна, каталог, екран пошуку) */
       mgSearchToggle: { label: 'МГ у пошуку', on: true },
-      /* Поза телефоном: колір клякси острівця — жовта, біла чи фіолетова «хмаринка» (css/branches/c-island.css) */
-      islandColorToggle: { label: 'Острівець', options: { yellow: 'I', white: 'II', purple: 'III' }, value: 'yellow' },
+      /* Поза телефоном (і в шторці на телефоні), останнім: «Острівець» — показати / сховати острівець
+         просто зараз (для демо, без прокрутки до банера). Стоїть як є: відкрили на скролі — вмикається сам */
+      islandToggle: { label: 'Показати острівець' },
+      /* Поза телефоном: вигляд острівця — I жовта клякса, II фіолетова «хмаринка» (css/branches/c-island.css) */
+      /* Острівець III — віджет над таб-баром головної (js/branches/c-island3.js, vendor/mashrum-island/).
+         skills — пропозиції, що змінюються кожні 7 с: t — текст, cta — підпис стрілки для скрінрідера,
+         pal — 4 світлі близькі кольори (основний, другий, туман, серпанок). Поки одна пропозиція. */
+      mgWidget: {
+        skills: [
+          { t: 'Пссс, зібрати вам кошик?', cta: 'Зібрати кошик',
+            think: 'Добираю продукти', done: 'Кошик зібрано', doneCta: 'Відкрити кошик',
+            pal: ['#FFE14A', '#D2F53A', '#FFF08A', '#F3FF9E'] },
+        ],
+      },
+      islandColorToggle: { label: 'Острівець', options: { yellow: 'I', purple: 'II', iii: 'III' }, value: 'yellow' },
       mgDrag: {
         gone: 'Машрум сховався',
         back: 'Повернути',
@@ -353,8 +366,40 @@
     input.addEventListener('change', () => set(input.checked));
   });
 
-  /* Поза телефоном, під «МГ у пошуку»: «Острівець · I | II | III» (жовтий, білий, фіолетовий) — колір клякси острівця
-     (<html data-island-color="white">, css/branches/c-island.css). Памʼятається в браузері. */
+  /* Поза телефоном, останнім (під «Острівець · I | II | III»): «Показати острівець» — вмикач = острівець
+     відкритий. Увімкнули — МГ заговорює на головній (I, II — острівець; III — віджет розгортається);
+     вимкнули — ховається (III — згортається у «спору»). Острівець відкрився чи закрився сам
+     (прокрутка, хрестик, чат) — вмикач підлаштовується. Не памʼятається: це дія, а не налаштування. */
+  document.addEventListener('DOMContentLoaded', () => {
+    const T = DATA.islandToggle;
+    const box = document.createElement('label');
+    box.className = 'chips-toggle island-on-toggle';
+    box.innerHTML = `<span class="chips-toggle__label">${T.label}</span><input class="switch" type="checkbox">`;
+    document.body.append(box);
+    const input = box.querySelector('input');
+    const iii = () => document.documentElement.dataset.islandColor === 'iii';
+    const widget = () => (window.MgWidget && MgWidget.el) || null;
+    const isOpen = () => (iii() ? Boolean(widget() && !MgWidget.isMin()) : (typeof MgIsland !== 'undefined' && MgIsland.root && MgIsland.isOpen()));
+    const sync = () => { input.checked = isOpen(); };
+    input.addEventListener('change', () => {
+      if (input.checked) {
+        const speak = () => MgIsland.speak('home', { force: true }); // force — для острівця III (js/branches/c-island3.js)
+        if (App.current && App.current.id === 'home') speak();
+        else { App.go('home'); setTimeout(speak, 350); }
+      } else if (iii()) widget()?.collapse();
+      else MgIsland.hide();
+      setTimeout(sync, 1000); // не відкрилось (напр. МГ перетягнутий) — вмикач назад
+    });
+    // острівець відкрився / закрився сам (MgIsland.init — пізніше, у js/mg-island.js)
+    setTimeout(() => setTimeout(() => setTimeout(() => {
+      const root = typeof MgIsland !== 'undefined' && MgIsland.root;
+      if (root) new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['class'] });
+    })));
+    ['mashrum-expand', 'mashrum-collapse', 'island-color', 'screenchange'].forEach(ev => document.addEventListener(ev, () => setTimeout(sync, 50)));
+  });
+
+  /* Поза телефоном, під «МГ у пошуку»: «Острівець · I | II | III» (жовта клякса, фіолетова хмаринка, віджет над таб-баром) — вигляд острівця
+     (<html data-island-color="purple">, css/branches/c-island.css). Памʼятається в браузері. */
   document.addEventListener('DOMContentLoaded', () => {
     const T = DATA.islandColorToggle, key = 'silpo-c-island-color';
     let value = T.value;
@@ -371,6 +416,7 @@
       document.documentElement.dataset.islandColor = v;
       box.querySelectorAll('[data-island-color-btn]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.islandColorBtn === v)));
       try { localStorage.setItem(key, v); } catch (e) { /* ок */ }
+      document.dispatchEvent(new CustomEvent('island-color', { detail: { value: v } })); // III — js/branches/c-island3.js
     };
     set(value);
     box.addEventListener('click', e => { const b = e.target.closest('[data-island-color-btn]'); if (b) set(b.dataset.islandColorBtn); });

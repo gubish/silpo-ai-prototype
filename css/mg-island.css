@@ -28,6 +28,9 @@
   transition: transform var(--isl-speed) cubic-bezier(0.3, 1.12, 0.4, 1);
 }
 
+/* живі шари поверх клякси (завитки, зірочки) — лише в гілці C, острівець II (css/branches/c-island.css) */
+.mg-island__fx { display: none; }
+
 /* біла «пігулка»: у спокої — коло під грибочком, розгортається вліво */
 .mg-island__surface {
   position: absolute;

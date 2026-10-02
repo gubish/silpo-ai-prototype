@@ -140,3 +140,4 @@
 /* Пошук: рядок МГ під «нічого не знайшли» (js/branches/c-search.js) */
 [data-branch="c"] .search-miss { margin: var(--space-12) 0 var(--space-4); }
 [data-branch="c"] .island-color-toggle { top: 336px; } /* під «МГ у пошуку»: 284 + 40 + 12 */
+[data-branch="c"] .island-on-toggle { top: 388px; padding-right: var(--space-8); cursor: pointer; } /* останнім: показати / сховати острівець */

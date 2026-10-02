@@ -3,7 +3,7 @@
    Та сама механіка, що в A (js/mg-island.js): МГ скочується вліво, з'являється
    текст і ×. Замість білої «пігулки» — жовто-зелена клякса з сяйвом
    (assets/images/island/blob.png — знімок вузла 6097:9227 з Figma; SVG із Figma браузер малює інакше), під текстом — мʼякі жовті плями.
-   Появу зроблено мʼякою, «як магія»: МГ пливе й раз плавно перекидається, без відскоку; клякса
+   Появу зроблено мʼякою, «як магія»: МГ пливе й раз плавно перекидається, без відскоку (в острівці II — без кувирка); клякса
    лишається за ним слідом (як хвіст комети), текст і × проступають із розмиття; потім клякса ледь «дихає».
    Теми «Темний / Скло» з A тут не діють (перемикач у C схований).
    ===================================================================== */
@@ -113,6 +113,13 @@
   transform: translateX(var(--isl-travel)) rotate(-360deg) scale(var(--isl-scale));
   filter: drop-shadow(0 0 10px rgba(243, 244, 153, 0.9)); /* ледь світиться, як і клякса */
 }
+/* Острівець II: МГ пливе вліво без кувирка. Туди — як в I (1.2 с, мʼякий розгін і гальмування);
+   назад — швидше, ease-out: одразу рушає й мʼяко доїжджає (0.5 с) */
+[data-branch="c"][data-island-color="purple"] .mg-island > .ai-fab { transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1), filter 400ms ease; }
+[data-branch="c"][data-island-color="purple"] .mg-island.is-open > .ai-fab {
+  transition: transform 1200ms cubic-bezier(0.4, 0, 0.2, 1), filter 600ms ease;
+  transform: translateX(var(--isl-travel)) scale(var(--isl-scale));
+}
 [data-branch="c"] .mg-island__surface { transition: width var(--isl-speed) var(--isl-ease), right var(--isl-speed) var(--isl-ease), opacity 300ms ease; }
 
 /* текст і × проступають із легкого туману, коли клякса вже майже зʼявилась */
@@ -135,39 +142,76 @@
   [data-branch="c"] .mg-island__text, [data-branch="c"] .mg-island__close { filter: none; }
 }
 
-/* Біла «хмаринка» замість жовтої клякси (перемикач «Острівець · I | II | III», варіант II поза телефоном).
-   assets/images/island/blob-light.png — знімок blob-light-yellow.svg (SVG із Figma + жовтий перехід від МГ, @2x);
-   чисто біла — blob-light-plain.png (з blob-light.svg). Трохи вища за жовту */
-[data-branch="c"][data-island-color="white"] .mg-island::before {
-  background-image: url("../../assets/images/island/blob-light.png");
-  --blob-sx: 1.0633; --blob-sy: 1.172; --blob-r: 0.0338; --blob-b: 0.047;
-  --blob-dy: 12px; /* біла хмаринка вища за жовту — опущена сильніше */
-}
-/* під текстом — біла, а не жовта пляма; МГ світиться білим */
-[data-branch="c"][data-island-color="white"] .mg-island__text::before { background: #fff; }
-[data-branch="c"][data-island-color="white"] .mg-island.is-open > .ai-fab { filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.95)); }
-
-/* Фіолетова «хмаринка» (перемикач «Острівець · I | II | III», варіант III): assets/images/island/blob-purple.png —
-   знімок blob-purple.svg із Figma (381×122, @2x; заливка щільніша, ніж у макеті: 90% замість 80%), жовте біля МГ уже в самій картинці.
+/* Фіолетова «хмаринка» (перемикач «Острівець · I | II», варіант II) — шари з Figma (assets/images/island/layers/:
+   island.svg, swish.svg, star.svg; знімки @2x 381×122 — purple-island.png, purple-swish.png,
+   purple-sparkles.png (зірочки), purple-dots.png (світлячки); зсуви шарів — зі скріну макета).
+   Острів — ::before (як жовта клякса, з тим самим «слідом» і «диханням»), завитки й зірочки —
+   .mg-island__fx поверх нього: проступають, коли острів уже намальовано, далі живуть своїм темпом.
    Масштаб — як у Figma відносно рамки клякси (--blob-w ≈ 369.6 одиниць макета);
    круглий кінець контуру (центр x ≈ 346) — під ×, а × стоїть посередині слота (right: 50%) */
-[data-branch="c"][data-island-color="purple"] .mg-island::before {
+[data-branch="c"][data-island-color="purple"] .mg-island {
+  --isl-edge: 26px; /* МГ і текст — на 10px далі від лівого краю телефона (у I — 16px) */
   --pk: calc(var(--blob-w) / 369.6);
   --pkx: calc(var(--pk) + 7px / 342);  /* по горизонталі контур на ~7px довший за макет (342 одиниці) */
-  background-image: url("../../assets/images/island/blob-purple.png");
-  width: calc(var(--pkx) * 381);
-  height: calc(var(--pk) * 122);
-  right: calc(50% - var(--pk) * 35 - 10px);                           /* правий край — на ~10px правіше, ніж гулька (x 346) під ×; лівий край контуру — ~24px від краю телефона */
-  bottom: calc(var(--isl-cy) - var(--pk) * 64.1 - var(--blob-dy));    /* центр контуру — y 57.9 з 122 */
+  --pw: calc(var(--pkx) * 381);
+  --ph: calc(var(--pk) * 122);
+  --pr: calc(50% - var(--pk) * 35 - 10px);                         /* правий край — на ~10px правіше, ніж гулька (x 346) під ×; лівий край контуру — ~24px від краю телефона */
+  --pb: calc(var(--isl-cy) - var(--pk) * 64.1 - var(--blob-dy));   /* центр контуру — y 57.9 з 122 */
+}
+[data-branch="c"][data-island-color="purple"] .mg-island::before,
+[data-branch="c"][data-island-color="purple"] .mg-island__fx {
+  width: var(--pw);
+  height: var(--ph);
+  right: var(--pr);
+  bottom: var(--pb);
   /* трохи нахилена проти годинникової стрілки навколо МГ (жовта пляма, x 74): центр круглого кінця
-     (x 346, y 62) — точно під × і на телефоні, і на десктопі (виміряно: −1.9…−2.0°).
+     (x 346, y 62) — точно під × і на телефоні, і на десктопі (виміряно: −1.9…−2.2°).
      Окрема властивість rotate, бо transform зайнятий «диханням» */
   transform-origin: 19.4% 47.5%;
   rotate: -2deg;
 }
+[data-branch="c"][data-island-color="purple"] .mg-island::before {
+  background-image: url("../../assets/images/island/purple-island.png");
+}
+
+/* живі шари: завитки ледь пливуть, зірочки й світлячки мерехтять не в такт */
+[data-branch="c"][data-island-color="purple"] .mg-island__fx {
+  display: block;
+  position: absolute;
+  z-index: 0; /* над островом (::before), під текстом і × */
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+[data-branch="c"][data-island-color="purple"] .mg-island__fx > i {
+  position: absolute;
+  inset: 0;
+  background: center / 100% 100% no-repeat;
+}
+[data-branch="c"] .mg-island__fx-swish { background-image: url("../../assets/images/island/purple-swish.png") !important; }
+[data-branch="c"] .mg-island__fx-sparkles { background-image: url("../../assets/images/island/purple-sparkles.png") !important; }
+[data-branch="c"] .mg-island__fx-dots { background-image: url("../../assets/images/island/purple-dots.png") !important; }
+/* проступають, коли слід острова вже домальовано (~1.2 с), і «дихають» разом з островом */
+[data-branch="c"][data-island-color="purple"] .mg-island.is-open .mg-island__fx {
+  opacity: 1;
+  transition: opacity 700ms ease 1100ms;
+  animation: mg-blob-breathe 3.6s ease-in-out 1.5s infinite alternate;
+}
+[data-branch="c"][data-island-color="purple"] .mg-island.is-open .mg-island__fx-swish { animation: mg-swish-drift 3.4s ease-in-out infinite alternate; }
+[data-branch="c"][data-island-color="purple"] .mg-island.is-open .mg-island__fx-sparkles { animation: mg-twinkle 2.6s ease-in-out infinite; }
+[data-branch="c"][data-island-color="purple"] .mg-island.is-open .mg-island__fx-dots { animation: mg-twinkle 3.3s ease-in-out -1.4s infinite; }
+@keyframes mg-swish-drift {
+  from { translate: -2px 0.5px; opacity: 0.7; }
+  to   { translate: 2px -0.5px; opacity: 1; }
+}
+@keyframes mg-twinkle {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.25; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-branch="c"] .mg-island__fx, [data-branch="c"] .mg-island__fx > i { animation: none !important; }
+}
 [data-branch="c"][data-island-color="purple"] .mg-island__text::before { background: #fff; }
-/* III: МГ і текст — на 10px далі від лівого краю телефона (у I і II — 16px) */
-[data-branch="c"][data-island-color="purple"] .mg-island { --isl-edge: 26px; }
 
 /* зона тапу по тексту — на всю висоту «пігулки» (у текст в один рядок важко влучити):
    невидимий ::after ширший і вищий за сам текст (::before зайнятий жовтою плямою) */
@@ -175,4 +219,30 @@
   content: "";
   position: absolute;
   inset: -24px -8px -24px -12px;
+}
+/* II: хрестик — колір --black-72 (rgba(19, 19, 30, 0.72), assets/icons/close-island.svg) і фіолетова тінь, як у макеті */
+[data-branch="c"][data-island-color="purple"] .mg-island__close img {
+  content: url("../../assets/icons/close-island.svg");
+  filter: drop-shadow(0 2px 5.5px rgba(125, 86, 175, 0.88)) !important; /* !important — сильніше за filter: none вище */
+}
+
+/* Острівець II зʼявляється швидше (~на чверть): МГ 1.2 → 0.9 с, слід острова 1.5 → 1.1 с,
+   «пігулка» 1.1 → 0.8 с, текст і × — раніше, завитки й зірочки — раніше. Острівець I — як був */
+[data-branch="c"][data-island-color="purple"] .mg-island { --isl-speed: 800ms; }
+[data-branch="c"][data-island-color="purple"] .mg-island.is-open > .ai-fab {
+  transition: transform 900ms cubic-bezier(0.4, 0, 0.2, 1), filter 450ms ease;
+}
+[data-branch="c"][data-island-color="purple"] .mg-island.is-open::before {
+  transition: opacity 150ms ease, filter 750ms var(--isl-ease) 150ms;
+  animation:
+    mg-blob-trail 1.1s cubic-bezier(0.4, 0, 0.2, 1) both,
+    mg-blob-breathe 3.6s ease-in-out 1.1s infinite alternate;
+}
+[data-branch="c"][data-island-color="purple"] .mg-island.is-open .mg-island__text,
+[data-branch="c"][data-island-color="purple"] .mg-island.is-open .mg-island__close {
+  transition: opacity 500ms ease 400ms, filter 600ms var(--isl-ease) 400ms;
+}
+[data-branch="c"][data-island-color="purple"] .mg-island.is-open .mg-island__fx {
+  transition: opacity 500ms ease 800ms;
+  animation: mg-blob-breathe 3.6s ease-in-out 1.1s infinite alternate;
 }

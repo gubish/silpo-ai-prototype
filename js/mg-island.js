@@ -30,6 +30,7 @@ const MgIsland = {
     root.className = 'mg-island';
     fab.before(root);
     root.innerHTML = `
+      <span class="mg-island__fx" aria-hidden="true"><i class="mg-island__fx-swish"></i><i class="mg-island__fx-sparkles"></i><i class="mg-island__fx-dots"></i></span>
       <div class="mg-island__surface">
         <button class="mg-island__text" type="button"></button>
       </div>
