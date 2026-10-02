@@ -160,19 +160,30 @@ if (Branch.current === 'c') {
     MgWidget.chat();
   }, true);
   // згорнутий віджет = звичайний кутовий МГ: його можна перетягнути чи змахнути (js/branches/c-drag.js).
-  // На дотик віджет тихо прибираємо — грибочок уже в кутовому слоті на тому ж місці, далі все як завжди;
-  // не потягнули (тап) — віджет повертається. Розгорнутий — не тягнеться.
+  // Віджет тихо прибираємо, лише коли справді почали тягнути (зрушили на 3px): грибочок — у кутовий слот
+  // на тому ж місці, далі тягне js/branches/c-drag.js. На самому натисканні DOM не чіпаємо — інакше
+  // браузер скасовує клік мишею (елемент перемістили між натисканням і відпусканням) і чат не відкривається.
+  // Розгорнутий — не тягнеться.
   document.addEventListener('pointerdown', e => {
     if (!e.target.closest('.mi-face')) return;
     if (!MgWidget.isMin()) { e.stopPropagation(); return; }
-    MgWidget.unmount();
-    const back = () => {
-      document.removeEventListener('pointerup', back, true);
-      document.removeEventListener('pointercancel', back, true);
-      setTimeout(() => MgWidget.sync(), 350); // після кліку (чат) і після «влягання» МГ; перетягнутий — віджета нема
+    const x = e.clientX, y = e.clientY, id = e.pointerId;
+    let lifted = false;
+    const move = ev => {
+      if (lifted || ev.pointerId !== id || Math.hypot(ev.clientX - x, ev.clientY - y) < 3) return;
+      lifted = true;
+      MgWidget.unmount(); // раніше за js/branches/c-drag.js (той слухає pointermove на document без захоплення)
     };
-    document.addEventListener('pointerup', back, true);
-    document.addEventListener('pointercancel', back, true);
+    const end = ev => {
+      if (ev.pointerId !== id) return;
+      document.removeEventListener('pointermove', move, true);
+      document.removeEventListener('pointerup', end, true);
+      document.removeEventListener('pointercancel', end, true);
+      if (lifted) setTimeout(() => MgWidget.sync(), 350); // покинули біля кута — віджет назад; перетягнутий — нема
+    };
+    document.addEventListener('pointermove', move, true);
+    document.addEventListener('pointerup', end, true);
+    document.addEventListener('pointercancel', end, true);
   }, true);
   // «Повернути» / вимикач у налаштуваннях — МГ знову в кутку: віджет на місце
   document.addEventListener('mg-enabled', () => setTimeout(() => MgWidget.sync(), 500));
