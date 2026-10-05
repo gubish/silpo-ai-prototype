@@ -154,6 +154,8 @@ const AiChat = {
         this.runTag(all[chip.dataset.next], all);
         return;
       }
+      // дія на картці (гілка D) — не відкриває картку товару під чатом
+      if (e.target.closest('[data-card-act]')) { e.stopPropagation(); return; }
       if (e.target.closest('[data-add], [data-remove], [data-like]')) return;
       const card = e.target.closest('.ai-products [data-go]');
       if (card) {
@@ -206,7 +208,7 @@ const AiChat = {
   anchorTop() {
     const node = this.anchor != null && this.threadEl.querySelector(`[data-msg="${this.anchor}"]`);
     if (!node) return null;
-    const msg = node.closest('.ai-msg'); // разом з аватаром над бульбашкою
+    const msg = node.closest('.ai-msg') || node; // разом з аватаром над бульбашкою
     return this.offsetOf(msg) - parseFloat(getComputedStyle(this.body).paddingTop);
   },
 
@@ -461,20 +463,39 @@ const AiChat = {
     // аватар і підпис — лише над останньою відповіддю помічника (або «друкує…»);
     // старі відповіді — просто бульбашки, як історія листування
     let speaking = -1;
-    this.thread.forEach((m, i) => { if (m.from === 'bot' && !m.products && !m.cont) speaking = i; });
+    this.thread.forEach((m, i) => { if (m.from === 'bot' && !m.products && !m.cont && m.kind !== 'confirm' && m.kind !== 'list') speaking = i; });
     // теги наступних кроків — лише під останньою відповіддю;
     // тег без відповіді показується, але неактивний (сценарій ще не зроблено)
     const tags = (m, i) => i === last && m.tags && m.tags.length ? `
       <div class="ai-followups">
         ${m.tags.map((t, k) => `<button class="ai-chip" type="button" data-next="${k}" ${this.isLive(t) ? '' : 'disabled'}>${this.seasonal(t.label)}</button>`).join('')}
       </div>` : '';
-    this.threadEl.innerHTML = this.thread.map((m, i) => m.products ? `
+    // рядок контексту (умови, які МГ запамʼятав): «×» — лише в останньому такому рядку
+    let lastCtx = -1;
+    this.thread.forEach((m, i) => { if (m.context && m.context.length) lastCtx = i; });
+    const context = (m, i) => m.context && m.context.length ? `
+        <div class="ai-context" aria-label="Що я врахував">
+          ${m.context.map((c, k) => `<span class="ai-context__item${c.source === 'assumption' ? ' ai-context__item--assumption' : ''}">${c.label}${
+            i === lastCtx && c.type ? `<button type="button" data-ctx-remove="${k}" data-ctx-msg="${i}" aria-label="Прибрати умову ${c.label}">×</button>` : ''}</span>`).join('')}
+        </div>` : '';
+    // чернетка списку (гілка D): редагується лише остання
+    let lastList = -1;
+    this.thread.forEach((m, i) => { if (m.kind === 'list') lastList = i; });
+    const listCard = (m, i) => this.listCard(m, i, i === lastList);
+    this.threadEl.innerHTML = this.thread.map((m, i) => m.kind === 'list' ? `${listCard(m, i)}${tags(m, i)}` : m.kind === 'confirm' ? `
+      <div class="ai-confirm${m.undone ? ' is-undone' : ''}" role="status" data-msg="${i}">
+        <img src="assets/icons/check-blue.svg" alt="">
+        <span class="ai-confirm__text">${m.text}</span>
+        ${m.undoable ? `<button class="ai-confirm__undo" type="button" data-undo="${i}">Скасувати</button>` : ''}
+      </div>
+      ${tags(m, i)}` : m.products ? `
       <div class="hscroll hscroll--bleed ai-products" tabindex="0" aria-label="Товари від помічника">
-        ${m.products.map(UI.plpCard).join('')}
+        ${m.products.map(p => this.card(p)).join('')}
       </div>
       ${tags(m, i)}` : `
       <div class="ai-msg ai-msg--${m.from}${m.cont ? ' ai-msg--cont' : ''}">
         ${i === speaking ? avatar : ''}
+        ${context(m, i)}
         <div class="ai-bubble ${m.typing ? 'ai-bubble--typing' : ''}" data-msg="${i}">${m.typing ? '<i></i><i></i><i></i>' : ''}</div>
       </div>
       ${tags(m, i)}`).join('');
@@ -497,6 +518,63 @@ const AiChat = {
     else { this.layout(); this.scrollToEnd(!this.el.hidden); } // плавно, якщо чат відкритий
   },
 
+  /* ---------- Чернетка списку (гілка D, правило «Форма результату») ----------
+     Компактні рядки: фото, назва, «к-сть · ціна», степер як на PLP, кнопка заміни;
+     тап по фото чи назві — картка товару. Ще пропозиція: пунктирна рамка й «Чернетка…» в заголовку;
+     кнопка «Додати в кошик · сума» рахує лише те, що беремо (off — «не беру»). badge — необовʼязкова позначка.
+     live — остання чернетка: її можна правити; старіші — як були на той момент.
+     m: { title, badge, rows: [{ id, qty, off, mark }], rowAction, addLabel, inCart } */
+  listCard(m, i, live) {
+    const edit = live && !m.inCart;
+    const rowsShown = m.inCart ? m.rows.filter(r => !r.off) : m.rows; // у кошику — лише те, що взяли
+    const on = m.rows.filter(r => !r.off);
+    const sum = rows => rows.reduce((s, r) => s + DATA.products[r.id].price * (r.qty || 1), 0);
+    // компактний рядок: фото · назва · «к-сть · ціна» · степер − N шт + · кнопка заміни (іконка з проду, 32×32).
+    // На 1 шт мінус = кошик (як у кошику), але товар не видаляє, а позначає «не беру»;
+    // сірий рядок повертається кнопкою «+».
+    const row = r => {
+      const p = DATA.products[r.id], q = r.qty || 1;
+      return `
+        <div class="ai-list__row${r.off ? ' is-off' : ''}${r.mark ? ' is-' + r.mark : ''}">
+          <img class="ai-list__img" src="${p.image}" alt="" data-go="pdp" data-param="${r.id}">
+          <div class="ai-list__info" data-go="pdp" data-param="${r.id}">
+            <span class="ai-list__name">${p.shortName || p.name}</span>
+            <span class="ai-list__meta">${r.off ? 'не беру' : `${q} шт · <b>${UI.money(p.price * q)}</b>`}${p.oldPrice && !r.off ? ` <s>${UI.money(p.oldPrice * q)}</s>` : ''}${r.mark === 'new' ? ' · <em>нове</em>' : ''}</span>
+          </div>
+          ${edit ? (r.off ? `
+            <button class="ai-list__back" type="button" data-list-on="${r.id}" data-list-msg="${i}" aria-label="Повернути: ${p.name}"><img src="assets/icons/plus.svg" alt=""></button>` : `
+            <span class="ai-stepper">
+              <button type="button" data-list-qty="-1" data-id="${r.id}" data-list-msg="${i}" aria-label="${q <= 1 ? 'Не брати' : 'Менше'}">${q <= 1 ? '<img src="assets/icons/trash-white.svg" alt="">' : '−'}</button>
+              <output>${q} шт</output>
+              <button type="button" data-list-qty="1" data-id="${r.id}" data-list-msg="${i}" aria-label="Більше">+</button>
+            </span>`) : ''}
+          ${edit && m.rowAction && !r.off ? `<button class="ai-list__swap" type="button" data-row-act="${r.id}" data-list-msg="${i}" aria-label="${m.rowAction}: ${p.name}"><img src="assets/icons/change.svg" alt=""></button>` : ''}
+        </div>`;
+    };
+    const addText = !on.length ? 'Нічого не обрано'
+      : on.length === m.rows.length ? `${m.addLabel || 'Додати в кошик'} · ${UI.money(sum(on))}`
+      : `Додати ${on.length} з ${m.rows.length} · ${UI.money(sum(on))}`;
+    return `
+      <div class="ai-list${m.inCart ? ' is-in-cart' : ''}" data-msg="${i}">
+        <div class="ai-list__head"><span>${m.title}</span>${m.badge && !m.inCart ? `<span class="ai-list__badge">${m.badge}</span>` : ''}</div>
+        ${rowsShown.map(row).join('')}
+        <div class="ai-list__total"><span>${m.inCart ? 'У кошику' : on.length === m.rows.length ? 'Разом' : `Разом за ${on.length} з ${m.rows.length}`}</span><b>${UI.money(sum(on))}</b></div>
+        ${edit && m.addLabel !== null ? `<button class="ai-list__add" type="button" data-list-add="${i}" ${on.length ? '' : 'disabled'}>${addText}</button>` : ''}
+      </div>`;
+  },
+
+  /** Картка товару в чаті; note — підпис МГ під карткою: чому саме цей товар (гілка D) */
+  card(item) {
+    let html = UI.plpCard(item);
+    // noAdd — без «+» (напр. варіанти заміни: дія — «Замінити», а не «в кошик»)
+    if (item.noAdd) html = html.replace(/<div class="qty"[\s\S]*?<\/div>\s*<\/div>/, '');
+    if (!item.note && !item.act) return html;
+    const i = html.lastIndexOf('</article>');
+    // act — дія на картці замість «+» (напр. «Замінити»); тап обробляє сценарій гілки D
+    return `${html.slice(0, i)}${item.note ? `<p class="ai-card-note${item.pick ? ' ai-card-note--pick' : ''}">${item.note}</p>` : ''}${
+      item.act ? `<button class="ai-card-act" type="button" data-card-act="${item.id}">${item.act}</button>` : ''}${html.slice(i)}`;
+  },
+
   push(from, text) {
     text = String(text).trim();
     if (!text) return;
@@ -508,6 +586,9 @@ const AiChat = {
   /** Відповідь помічника з паузою «друкує…»;
       products — картки під відповіддю, tags — теги наступних кроків у кінці,
       mood — настрій Машрума у відповіді (DATA.aiChat.moods),
+      extra.context — рядок умов над текстом (гілка D: [{ label, source: 'guest'|'assumption' }]);
+      kind: 'confirm' у thread — підтвердження дії з «Скасувати» (гілка D);
+      extra.list — чернетка списку { title, badge, rows: [{ id, qty, mark }], rowAction, totalLabel } (гілка D);
       extra.after — ще одна бульбашка МГ під картками, перед тегами (напр. сума й доставка набору:
       там, де людина вирішує, а не над товарами, які вона розглядає) */
   reply(text, products, tags, mood, extra) {
@@ -521,10 +602,12 @@ const AiChat = {
       this.setMood(mood || DATA.aiChat.defaultMood);
       this.thread.splice(this.thread.indexOf(typing), 1);
       const withCards = products && products.length;
-      this.thread.push({ from: 'bot', text, tags: withCards ? null : tags });
-      this.anchor = this.thread.length - 1; // цю відповідь — першою на екрані
-      const after = withCards && extra && extra.after;
-      if (withCards) this.thread.push({ from: 'bot', products, tags: after ? null : tags });
+      const list = extra && extra.list; // чернетка списку під текстом (гілка D)
+      this.thread.push({ from: 'bot', text, tags: withCards || list ? null : tags, context: extra && extra.context });
+      this.anchor = extra && extra.anchor != null ? extra.anchor : this.thread.length - 1; // цю відповідь — першою на екрані (extra.anchor — інше повідомлення, напр. підтвердження дії)
+      const after = (withCards || list) && extra && extra.after;
+      if (withCards) this.thread.push({ from: 'bot', products, tags: after || list ? null : tags });
+      if (list) this.thread.push({ from: 'bot', kind: 'list', ...list, tags: after ? null : tags });
       if (after) this.thread.push({ from: 'bot', text: after, tags, cont: true }); // продовження: без аватара
       this.render();
     }, DATA.aiChat.replyDelay);
@@ -611,10 +694,12 @@ const AiChat = {
      kind: 'opener'   — стартовий тег (після відповіді на своє питання);
            'followUp' — уточнення добірки фруктів (флоу «Сезонні фрукти»);
            'node'     — крок сценарію з DATA.aiChat.openers[…].next. */
-  isLive(t) { return t.kind !== 'node' || Boolean(t.answer || t.go); },
+  isLive(t) { return t.kind !== 'node' || Boolean(t.answer || t.go || t.run); }, // run — крок сценарію гілки D
 
-  /** Теги наступного кроку; рядок — id спільного тегу з DATA.aiChat.openers */
+  /** Теги наступного кроку; рядок — id спільного тегу з DATA.aiChat.openers.
+      list може бути функцією — тоді теги будуються в момент відповіді (сценарії гілки D) */
   nodes(list) {
+    if (typeof list === 'function') list = list();
     return (list || []).map(n => {
       const node = typeof n === 'string' ? DATA.aiChat.openers.find(o => o.id === n) : n;
       return node ? { ...node, kind: 'node' } : null;
@@ -628,10 +713,12 @@ const AiChat = {
     else this.runNode(t);
   },
 
-  /** Крок сценарію: відповідь, картки (або дія) і теги наступного кроку */
-  runNode(n) {
+  /** Крок сценарію: відповідь, картки (або дія) і теги наступного кроку.
+      said — що написав гість замість тексту тегу (своє питання, яке привело до цього кроку);
+      n.after — друга бульбашка МГ під картками */
+  runNode(n, said) {
     if (n.go) return this.pushTo(n.go, n.param); // тег-перехід («Оформити замовлення» → кошик); «Назад» — знову в чат
-    this.push('user', n.label);
+    this.push('user', said || n.label);
     let items = null, count = 0;
     if (n.action === 'addAll' || n.action === 'addItems') {
       // addAll — товари з останніх карток у розмові; addItems — власні items тегу
@@ -642,7 +729,8 @@ const AiChat = {
       items = this.itemsFor(n, null);
       count = items ? items.length : 0;
     }
-    this.reply(this.fill(n.answer, count, n.countForms), items, this.nodes(n.next), n.mood);
+    this.reply(this.fill(n.answer, count, n.countForms), items, this.nodes(n.next), n.mood,
+      n.after && { after: this.fill(n.after, count, n.countForms) });
   },
 
   lastProducts() {

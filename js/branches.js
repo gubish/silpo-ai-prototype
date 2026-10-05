@@ -9,6 +9,8 @@
    • C — демо-збірка: база A (МГ-острівець у кутку) + пошук із B і жовті
      теги МГ лише на каталозі, лістингу, картці товару й у кошику — js/branches/c.js.
      Спільні з B надбудови вмикає features у Branch.list.
+   • D — сценарії чату МГ: уся гілка C + чат на весь екран і перемикач
+     сценаріїв (js/branches/d.js, сценарії — js/scenarios/*.js).
    • Перемикання перезапускає прототип на тому ж екрані (кошик і чат з нуля).
    • Вибір памʼятається в браузері; для посилання на конкретну гілку
      додайте ?branch=b перед #: index.html?branch=b#pdp/banana
@@ -20,6 +22,8 @@ const Branch = {
     a: { label: 'A', title: 'Гілка A — основний дизайн' },
     b: { label: 'B', title: 'Гілка B — альтернативний дизайн', features: ['search', 'mg'] },
     c: { label: 'C', title: 'Гілка C — демо: A + пошук і теги МГ із B', features: ['search', 'mg'] },
+    // base — гілка-основа: D = уся C (дані, стилі, поведінка) + свої зміни поверх
+    d: { label: 'Chats', title: 'Гілка Chats — сценарії чату МГ (на основі C)', base: 'c', features: ['search', 'mg'] },
   },
   fallback: 'a',
   storageKey: 'silpo-branch',
@@ -38,6 +42,11 @@ const Branch = {
     } catch (e) { /* приватний режим */ }
     return fromUrl || saved || 'a';
   })(),
+
+  /** Чи поточна гілка — id або збудована на ній (D → is('c') теж true) */
+  is(id) {
+    return this.current === id || this.list[this.current]?.base === id;
+  },
 
   /** Чи бере поточна гілка спільну надбудову: 'search' — підказки пошуку (js/branches/b-search.js),
       'mg' — жовті чипи «Помічник може допомогти» (js/branches/b-mg.js) */
@@ -62,12 +71,16 @@ const Branch = {
   /** Викликає App.init до першого рендеру */
   apply() {
     if (!this.list[this.current]) this.current = this.fallback;
-    document.documentElement.dataset.branch = this.current;
-    const o = this.overrides[this.current];
-    if (o) {
+    // гілка з основою: стилі основи ([data-branch="c"]) + свої ([data-variant="d"])
+    const base = this.list[this.current].base;
+    document.documentElement.dataset.branch = base || this.current;
+    if (base) document.documentElement.dataset.variant = this.current;
+    [base, this.current].filter(Boolean).forEach(id => {
+      const o = this.overrides[id];
+      if (!o) return;
       this.merge(DATA, o.data);
       Object.assign(Screens, o.screens); // свій екран гілки замість основного
-    }
+    });
     this.renderToggle();
     this.renderQr();
   },

@@ -268,10 +268,10 @@ p, h1, h2, h3 { margin: 0; }
 .chips-toggle__btn[aria-pressed="true"] { background: var(--blue-500); color: var(--white); }
 .chips-toggle__btn:focus-visible { outline: 2px solid var(--blue-500); outline-offset: 2px; }
 
-/* ---------- QR-код «На телефоні» — поза рамкою, внизу ліворуч ---------- */
+/* ---------- QR-код «На телефоні» — поза рамкою, завжди внизу праворуч ---------- */
 .qr-card {
   position: fixed;
-  left: 24px;
+  right: 24px;
   bottom: 24px;
   z-index: 1;
   display: flex;

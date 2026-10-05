@@ -320,6 +320,6 @@ const MgDrag = {
 };
 
 // після js/mg-island.js: острівець уже обгорнув грибочок
-if (Branch.current === 'c') {
+if (Branch.is('c')) {
   document.addEventListener('DOMContentLoaded', () => setTimeout(() => setTimeout(() => MgDrag.init())));
 }

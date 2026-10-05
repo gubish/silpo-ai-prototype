@@ -11,7 +11,7 @@
    Тексти й скіни — DATA.mgSettings (js/branches/c.js).
    ===================================================================== */
 
-if (Branch.current === 'c') {
+if (Branch.is('c')) {
   const skinKey = 'silpo-c-mg-skin';
 
   // екран — ще до App.init, щоб роутер його знав (#mg-settings)

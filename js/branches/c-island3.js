@@ -24,7 +24,7 @@
    Тексти пропозицій — DATA.mgWidget.skills (js/branches/c.js), стилі — css/branches/c-island3.css.
    ===================================================================== */
 
-if (Branch.current === 'c') {
+if (Branch.is('c')) {
   const MgWidget = {
     dock: null,
     el: null,

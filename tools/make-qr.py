@@ -8,7 +8,7 @@ import qrcode
 import qrcode.image.svg
 
 BASE = 'https://gubish.github.io/silpo-ai-prototype/?branch='
-BRANCHES = ['a', 'b', 'c']
+BRANCHES = ['a', 'b', 'c', 'd']
 out = pathlib.Path(__file__).resolve().parent.parent / 'assets' / 'qr'
 out.mkdir(parents=True, exist_ok=True)
 for b in BRANCHES:

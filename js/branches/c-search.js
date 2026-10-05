@@ -13,7 +13,7 @@
    Тексти — DATA.mgSearch (js/branches/c.js), стилі — css/branches/c.css.
    ===================================================================== */
 
-if (Branch.current === 'c') {
+if (Branch.is('c')) {
   const lower = s => s.toLocaleLowerCase('uk-UA');
   const fillQuery = (text, query) => text.split('{query}').join(query);
   const esc = t => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
