@@ -539,8 +539,9 @@ const AiChat = {
           <img class="ai-list__img" src="${p.image}" alt="" data-go="pdp" data-param="${r.id}">
           <div class="ai-list__info" data-go="pdp" data-param="${r.id}">
             <span class="ai-list__name">${p.shortName || p.name}</span>
-            <span class="ai-list__meta">${r.off ? 'не беру' : `${q} шт · <b>${UI.money(p.price * q)}</b>`}${p.oldPrice && !r.off ? ` <s>${UI.money(p.oldPrice * q)}</s>` : ''}${r.mark === 'new' ? ' · <em>нове</em>' : ''}</span>
+            <span class="ai-list__meta">${r.off ? '<span>не беру</span>' : `${edit ? '' : `<span>${q} шт ·</span>`}<b>${UI.money(p.price * q)}</b>`}${p.oldPrice && !r.off ? `<s>${UI.money(p.oldPrice * q)}</s>` : ''}${r.mark === 'new' ? '<em>нове</em>' : ''}</span>
           </div>
+          ${edit && m.rowAction && !r.off ? `<button class="ai-list__swap" type="button" data-row-act="${r.id}" data-list-msg="${i}" aria-label="${m.rowAction}: ${p.name}"><img src="assets/icons/change.svg" alt=""></button>` : ''}
           ${edit ? (r.off ? `
             <button class="ai-list__back" type="button" data-list-on="${r.id}" data-list-msg="${i}" aria-label="Повернути: ${p.name}"><img src="assets/icons/plus.svg" alt=""></button>` : `
             <span class="ai-stepper">
@@ -548,7 +549,6 @@ const AiChat = {
               <output>${q} шт</output>
               <button type="button" data-list-qty="1" data-id="${r.id}" data-list-msg="${i}" aria-label="Більше">+</button>
             </span>`) : ''}
-          ${edit && m.rowAction && !r.off ? `<button class="ai-list__swap" type="button" data-row-act="${r.id}" data-list-msg="${i}" aria-label="${m.rowAction}: ${p.name}"><img src="assets/icons/change.svg" alt=""></button>` : ''}
         </div>`;
     };
     const addText = !on.length ? 'Нічого не обрано'

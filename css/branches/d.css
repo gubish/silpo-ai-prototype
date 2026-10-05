@@ -162,13 +162,13 @@
   display: flex;
   align-items: center;
   gap: var(--space-8);
-  padding: var(--space-8) var(--space-12);
+  padding: 6px var(--space-12);
   border-top: 1px solid var(--black-4);
 }
 .ai-list__row.is-new { background: #f2f6ff; }
 .ai-list__row.is-off .ai-list__img,
 .ai-list__row.is-off .ai-list__info { opacity: 0.45; }
-.ai-list__img { width: 40px; height: 40px; flex: none; object-fit: contain; border-radius: var(--radius-4, 4px); }
+.ai-list__img { width: 48px; height: 48px; flex: none; object-fit: contain; border-radius: var(--radius-4, 4px); }
 .ai-list__info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .ai-list__name {
   overflow: hidden;
@@ -178,7 +178,9 @@
   line-height: 18px;
   color: var(--ink-100);
 }
-.ai-list__meta { font-size: 12px; line-height: 16px; color: var(--black-72); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* ціни не обрізаємо: шматки неподільні, якщо не влазять — переносяться на другий рядок */
+.ai-list__meta { display: flex; flex-wrap: wrap; column-gap: 4px; font-size: 12px; line-height: 16px; color: var(--black-72); }
+.ai-list__meta > * { white-space: nowrap; }
 .ai-list__meta b { font-weight: var(--fw-semibold); color: var(--ink-100); }
 .ai-list__meta s { color: rgba(32, 33, 36, 0.45); }
 .ai-list__meta em { font-style: normal; font-weight: var(--fw-semibold); color: var(--blue-500); }
