@@ -161,14 +161,15 @@
       .map((id, i) => ({ id, note: W[id].notes[key] || W[id].notes.any, pick: i === 0 }));
   }
 
-  /** Рядок контексту: що МГ врахував */
+  /** Рядок контексту: що МГ врахував. Не повторюємо те, що гість щойно сказав дослівно (st.just) —
+      це видно в його репліці; припущення МГ і його тлумачення («дорого» → «дешевше за 420 ₴») — показуємо */
   function context(st) {
     const c = [];
     if (st.dish && st.dish !== 'undecided') c.push({ type: 'dish', label: T.dishCtx[st.dish], source: 'guest' });
     if (st.color) c.push({ type: 'color', label: T.colorCtx[st.color], source: 'guest' });
     if (st.below) c.push({ type: 'below', label: `дешевше за ${money(st.below)}`, source: 'guest' });
     else if (st.max) c.push({ type: 'max', label: st.maxSource === 'assumption' ? `до ${money(st.max)}, припущення` : `до ${money(st.max)}`, source: st.maxSource });
-    return c;
+    return c.filter(x => !(st.just || []).includes(x.type));
   }
 
   /** Перше речення: що лишилось із попередньої добірки, а що нове */
@@ -224,7 +225,9 @@
   }
 
   /** Змінити одну умову й відповісти */
-  function update(patch) {
+  /** said: умову назвав гість у цій репліці (чіп або текст) — у рядку контексту її не повторюємо */
+  function update(patch, { said = true } = {}) {
+    S.just = said ? Object.keys(patch).filter(k => k !== 'maxSource' && patch[k] != null && !(k === 'max' && patch.maxSource !== 'guest')) : [];
     if ('dish' in patch || 'color' in patch) S.exclude = [];
     if ('max' in patch) S.below = null;
     Object.assign(S, patch);
@@ -236,7 +239,7 @@
   function cheaper() {
     if (S.added) return replaceOffer(S.added);
     const min = Math.min(...S.shown.map(price));
-    S.below = min; S.exclude = [];
+    S.below = min; S.exclude = []; S.just = []; // «дорого» → межа — це тлумачення МГ, показуємо
     const r = respond();
     if (!r.noMatch) r.text = `Дешевше за ${money(min)} — ${r.items.length === 1 ? 'є один варіант' : `ось ${count(r.items.length, VARIANTS)}`}:`;
     return r;
@@ -244,7 +247,7 @@
 
   /** «Інший варіант» — ті самі умови, без уже показаних */
   function other() {
-    S.exclude = [...new Set([...S.exclude, ...S.shown])];
+    S.exclude = [...new Set([...S.exclude, ...S.shown])]; S.just = [];
     S.added = null;
     const r = respond();
     if (!r.noMatch) r.text = 'З тими самими умовами є ще ось:';
@@ -437,6 +440,7 @@
     S = fresh();
     S.dish = dish; S.color = color;
     if (max !== undefined) Object.assign(S, { max, maxSource: max ? 'guest' : null });
+    S.just = [dish && 'dish', color && 'color', max && 'max'].filter(Boolean); // щойно сказав гість
     return respond();
   }
 
@@ -483,7 +487,7 @@
     const label = { dish: T.dishCtx[S.dish], color: T.colorCtx[S.color], max: `до ${money(S.max || 0)}`, below: `дешевше за ${money(S.below || 0)}` }[type];
     const patch = { dish: { dish: null }, color: { color: null }, max: { max: null, maxSource: null }, below: { below: null } }[type];
     return node(`Без «${label}»`, () => {
-      const r = update(patch);
+      const r = update(patch, { said: false }); // гість прибрав умову — нічого нового не казав
       if (!r.noMatch) r.text = `Без «${label}» — ${r.items.length === 1 ? 'є такий варіант' : `ось ${count(r.items.length, VARIANTS)}`}:`;
       return r;
     });

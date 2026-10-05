@@ -2,7 +2,7 @@
    СЦЕНАРІЇ ЧАТУ МГ — спільний механізм для гілок C і Chats (D), за правилами
    docs/mg-dialog-rules.md. Сценарії — окремі файли js/scenarios/<id>.js: Scenarios.define({...}).
    • Крок сценарію { label, run }: слова гостя → [«✓ … · Скасувати»] → відповідь МГ
-     (картки з підписом «чому цей», чернетка-список, рядок контексту з «×», один суміжний крок).
+     (картки з підписом «чому цей», чернетка-список, рядок припущень МГ з «×», один суміжний крок).
    • Своє питання: спершу кожен сценарій пробує його розпізнати (route), далі — як раніше.
    • Кошик: іконка заміни з проду в рядку → чат поверх кошика; жовті чіпси МГ — лише ті,
      на які є реальна відповідь (Де зекономити? / Як доставити дешевше? / Що з цього приготувати?).
@@ -68,7 +68,9 @@ const Scenarios = {
     const anchor = r.confirm ? this.thread.length - 1 : null;
     if (r.list) freezeLists.call(this);
     const list = r.list && { ...r.list, scenario: n.scenario }; // чернетка списку — «Замінити» в рядку піде в цей сценарій
-    this.reply(r.text, r.items, this.nodes(r.chips), r.mood, { after: r.after, context: r.context, anchor, list });
+    // рядок контексту — лише припущення МГ: усе, що казав гість, і так видно в переписці
+    const context = (r.context || []).filter(c => c.source === 'assumption');
+    this.reply(r.text, r.items, this.nodes(r.chips), r.mood, { after: r.after, context, anchor, list });
   }
 
   /** Старі чернетки лишаються такими, як були: копіюємо їхні рядки (остання ділить рядки зі сценарієм) */

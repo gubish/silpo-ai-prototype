@@ -134,10 +134,12 @@
   };
   function periodCtx() {
     const p = PERIODS[S.period];
-    return [{ type: 'period', label: S.periodSource === 'assumption' ? `${p.label}, припущення` : p.label, source: S.periodSource }];
+    return shown([{ type: 'period', key: 'period', label: S.periodSource === 'assumption' ? `${p.label}, припущення` : p.label, source: S.periodSource }]);
   }
+  /** Рядок контексту без того, що гість щойно сказав дослівно (S.just) — це видно в його репліці */
+  const shown = ctx => ctx.filter(c => !(S.just || []).includes(c.key));
   function setPeriod(key) {
-    S.period = key; S.periodSource = 'guest';
+    S.period = key; S.periodSource = 'guest'; S.just = ['period'];
     S.draft.forEach((r, i) => { r.qty = PERIODS[key].qty[i] || 1; });
     return {
       text: key === 'week' ? 'Перерахував на тиждень: більше овочів, фруктів і води. Решта без змін:' : 'Перерахував на кілька днів, по одному. Решта без змін:',
@@ -163,6 +165,7 @@
   /* ---------- Відповіді ---------- */
   function start() {
     S = fresh();
+    S.just = [];
     // до дешевшої доставки близько — кажемо суму одразу і даємо суміжний крок
     const nd = nextDelivery(), near = nd && nd.left <= 300;
     return {
@@ -312,16 +315,19 @@
   const cap = s => s.charAt(0).toLocaleUpperCase('uk-UA') + s.slice(1);
 
   /** Варіанти заміни: одразу показуємо, причина — одним питанням під ними */
-  function offer(id, reason = null, where) {
+  /** just — що гість щойно назвав (не повторюємо в рядку контексту): за замовчуванням товар, якщо
+      він щойно сказав «заміни X»; «без яєць», якщо щойно обрав цю причину */
+  function offer(id, reason = null, where, just) {
     if (where) S.where = where;
+    S.just = just || (reason ? (reason === 'noEgg' ? ['noEgg'] : []) : ['target']);
     S.target = id; S.reason = reason;
     const base = P(id).price;
     let alts = (ALT[id] || []).filter(a => !(S.noEgg && !a.tags.includes('noEgg') && id === 'hellmanns'));
     if (reason === 'cheaper') alts = alts.filter(a => P(a.id).price < base).sort((a, b) => P(a.id).price - P(b.id).price);
     else if (reason) alts = alts.filter(a => a.tags.includes(reason));
     alts = alts.slice(0, 3);
-    const ctx = [{ label: `замість: ${nameOf(id)}`, source: 'guest' }];
-    if (S.noEgg) ctx.push({ label: 'без яєць', source: 'guest', type: 'noEgg' });
+    const ctx = shown([{ key: 'target', label: `замість: ${nameOf(id)}`, source: 'guest' },
+      ...(S.noEgg ? [{ key: 'noEgg', label: 'без яєць', source: 'guest', type: 'noEgg' }] : [])]);
 
     if (!(ALT[id] || []).length) {
       return {
@@ -336,7 +342,7 @@
       return {
         text: `${cap(why)} варіанта для «${nameOf(id)}» зараз немає.`,
         context: ctx,
-        chips: [node('Показати всі варіанти', () => offer(id)), node(T.keep(accOf(id)), keep)],
+        chips: [node('Показати всі варіанти', () => offer(id, null, undefined, [])), node(T.keep(accOf(id)), keep)],
       };
     }
     // підпис: чим відрізняється від поточного (ціна — завжди з даних)
@@ -490,7 +496,7 @@
       return node(`Змінити «${label}»`, () => ({ text: 'Гаразд. На скільки збирати?', chips: periodChips() }));
     }
     if (type !== 'noEgg') return null;
-    return node('Можна з яйцями', () => { S.noEgg = false; return S.target ? offer(S.target) : { text: 'Гаразд, без обмеження.', chips: [node(T.replaceMore, askWhich)] }; });
+    return node('Можна з яйцями', () => { S.noEgg = false; return S.target ? offer(S.target, null, undefined, []) : { text: 'Гаразд, без обмеження.', chips: [node(T.replaceMore, askWhich)] }; });
   }
 
   Scenarios.define({
