@@ -14,8 +14,12 @@
      ще не вирішив (універсальне або пара «червоне й біле»), скасування.
    • Пара «червоне й біле» — набір, тож чернетка-список (правило «Форма результату»):
      «Замінити» в рядку → карусель того ж кольору з «Замінити» на картці.
+   • Смак простими словами (W[id].body/sweet/acid/tannin/taste): чіпси «Легше» / «Насиченіше» /
+     «Солодше» — від вибору МГ, лише коли такий варіант є; «Ще не вирішив» → два описи смаку
+     замість термінів; «не люблю кислинку / терпке / солодке», «люблю Prosecco» (схоже на нього),
+     «не люблю Malbec» — умови; смак не сходиться зі стравою → tasteMiss (чесно + два шляхи).
    • МГ не рекламує алкоголь: знижки — лише цінник на картці, у текстах МГ їх немає.
-   Демо: 7 вин (DEMO нижче) — намальовані пляшки (tools/make-demo-wines.py), у назві «(демо)»;
+   Демо: 7 вин (DEMO нижче) — намальовані пляшки (tools/make-demo-wines.py);
    ціни й наявність демонстраційні. Справжні в прототипі: Lail, Chablis, Vinho Verde.
    Тексти — T, що МГ знає про вина — W, порядок порад — ORDER.
    ===================================================================== */
@@ -26,26 +30,25 @@
   /* ---------- Демо-вина: дані товару й картки (лише гілка D) ---------- */
   const warn = { badge: '18+', text: 'Придбати алкогольні напої можуть особи, які досягли 18 років. Надмірне споживання алкоголю шкідливе для вашого здоров\'я.' };
   const DEMO = {
-    wineCabernet:  { name: 'Вино Cabernet Sauvignon червоне сухе, Чилі (демо)', price: 389, img: 'cabernet',
+    wineCabernet:  { name: 'Вино Cabernet Sauvignon червоне сухе, Чилі', price: 389, img: 'cabernet',
                      d: ['Червоне', 'Сухе', 'Чилі', 'Каберне Совіньйон', 'Помірна', '13', 'мʼясо, гриль, тверді сири'] },
-    wineMalbec:    { name: 'Вино Malbec червоне сухе, Аргентина (демо)', price: 549, img: 'malbec',
+    wineMalbec:    { name: 'Вино Malbec червоне сухе, Аргентина', price: 549, img: 'malbec',
                      d: ['Червоне', 'Сухе', 'Аргентина', 'Мальбек', 'Помірна', '13.5', 'стейк, баранина'] },
-    winePinot:     { name: 'Вино Pinot Noir червоне сухе, Франція (демо)', price: 690, img: 'pinot',
+    winePinot:     { name: 'Вино Pinot Noir червоне сухе, Франція', price: 690, img: 'pinot',
                      d: ['Червоне', 'Сухе', 'Франція', 'Піно Нуар', 'Висока', '12.5', 'птиця, гриби, лосось'] },
-    wineSauvignon: { name: 'Вино Sauvignon Blanc біле сухе, Нова Зеландія (демо)', price: 480, img: 'sauvignon',
+    wineSauvignon: { name: 'Вино Sauvignon Blanc біле сухе, Нова Зеландія', price: 480, img: 'sauvignon',
                      d: ['Біле', 'Сухе', 'Нова Зеландія', 'Совіньйон Блан', 'Висока', '12.5', 'риба, салати, козячий сир'] },
-    wineRiesling:  { name: 'Вино Riesling біле напівсухе, Німеччина (демо)', price: 420, img: 'riesling',
+    wineRiesling:  { name: 'Вино Riesling біле напівсухе, Німеччина', price: 420, img: 'riesling',
                      d: ['Біле', 'Напівсухе', 'Німеччина', 'Рислінг', 'Висока', '10', 'гостра й азійська кухня'] },
-    wineRose:      { name: 'Вино Rosé рожеве сухе, Прованс (демо)', price: 520, img: 'rose',
+    wineRose:      { name: 'Вино Rosé рожеве сухе, Прованс', price: 520, img: 'rose',
                      d: ['Рожеве', 'Сухе', 'Франція', 'Гренаш, Сенсо', 'Помірна', '12.5', 'закуски, салати'] },
-    wineProsecco:  { name: 'Вино ігристе Prosecco брют, Італія (демо)', price: 359, img: 'prosecco',
+    wineProsecco:  { name: 'Вино ігристе Prosecco брют, Італія', price: 359, img: 'prosecco',
                      d: ['Ігристе', 'Брют', 'Італія', 'Глера', 'Висока', '11', 'закуски, сир, морепродукти'] },
   };
   const LABELS = ['Колір вина', 'Смак вина', 'Країна походження', 'Сорт винограду', 'Кислотність', '% спирту', 'Гастрономічні поєднання'];
   Object.entries(DEMO).forEach(([id, w]) => {
     DATA.products[id] = { name: w.name, kind: 'wine', price: w.price, weight: '0.75 л', image: `assets/images/products/demo/wine-${w.img}.svg` };
     DATA.pdp.products[id] = {
-      description: 'Демонстраційний товар для сценарію чату: ціна, наявність і фото умовні.',
       details: w.d.map((value, k) => ({ label: LABELS[k], value })),
       warning: warn,
     };
@@ -53,27 +56,40 @@
 
   /* ---------- Що МГ знає про кожне вино ----------
      color — для «хочу біле»; notes — підпис під карткою (до 60 символів) для кожної страви
-     (any — у розкиді, коли страва ще невідома); available: false — немає в наявності. */
+     (any — у розкиді, коли страва ще невідома); available: false — немає в наявності.
+     Смак (узгоджено з карткою товару: «Смак вина», «Кислотність»): body 1 легке … 5 дуже насичене,
+     sweet 0 сухе / 1 з солодкістю, acid 2 помірна / 3 висока, tannin 0 … 3 (3 — помітно терпке);
+     taste — смак простими словами, без винних термінів. */
   const W = {
     winePinot:     { short: 'Pinot Noir', color: 'red',
+                     body: 2, sweet: 0, acid: 3, tannin: 1, taste: 'легке, ягідне, з кислинкою',
                      notes: { any: 'Якщо ще не знаєш: легке червоне, пасує до більшості страв', meat: 'Легке — до птиці, грибів, телятини', fish: 'Легке червоне, не забиває рибу', cheese: 'До мʼяких і витриманих сирів' } },
     wineMalbec:    { short: 'Malbec', color: 'red',
+                     body: 4, sweet: 0, acid: 2, tannin: 2, taste: 'щільне, соковите, мʼяке',
                      notes: { any: 'До мʼяса: щільне, соковите', meat: 'Щільне, соковите — до стейка' } },
     wineCabernet:  { short: 'Cabernet Sauvignon', color: 'red',
+                     body: 3, sweet: 0, acid: 2, tannin: 3, taste: 'ягідне, з помітною терпкістю',
                      notes: { any: 'Червоне на кожен день, до мʼяса', meat: 'Ягідне, середнє тіло — до гриля', cheese: 'До твердих сирів: чедер, гауда' } },
     wineLail:      { short: 'Lail Cabernet', color: 'red',
+                     body: 5, sweet: 0, acid: 2, tannin: 3, taste: 'дуже насичене й терпке',
                      notes: { any: 'Насичене — на особливий вечір', meat: 'Насичене, з танінами — на особливий вечір', cheese: 'До витриманих сирів' } },
     wineSauvignon: { short: 'Sauvignon Blanc', color: 'white',
+                     body: 2, sweet: 0, acid: 3, tannin: 0, taste: 'свіже, трав’янисте, з кислинкою',
                      notes: { any: 'До риби й салатів: свіже', fish: 'Свіже, з кислинкою — до риби й салатів', cheese: 'До козячого сиру' } },
     wineCasa:      { short: 'Vinho Verde', color: 'white',
+                     body: 1, sweet: 0, acid: 3, tannin: 0, taste: 'дуже легке, з ледь відчутною бульбашкою',
                      notes: { any: 'Легке біле з бульбашкою', fish: 'Легше, з бульбашкою — до риби на грилі' } },
     wineRiesling:  { short: 'Riesling', color: 'white',
+                     body: 2, sweet: 1, acid: 3, tannin: 0, taste: 'фруктове, з легкою солодкістю',
                      notes: { any: 'Напівсухе біле, до гострого', fish: 'Напівсухе — якщо риба гостра чи по-азійськи' } },
     winePascal:    { short: 'Chablis', color: 'white',
+                     body: 3, sweet: 0, acid: 3, tannin: 0, taste: 'мінеральне, свіже, цитрусове',
                      notes: { any: 'Мінеральне біле, класика', fish: 'Мінеральне, класика до білої риби', cheese: 'До мʼяких сирів: брі, камамбер' } },
     wineProsecco:  { short: 'Prosecco', color: 'sparkling',
+                     body: 1, sweet: 0, acid: 3, tannin: 0, taste: 'легке, яблучне, з бульбашкою',
                      notes: { any: 'Ігристе — до закусок, якщо ще не знаєш', fish: 'Ігристе — до морепродуктів', cheese: 'Ігристе — до сирної тарілки й закусок' } },
     wineRose:      { short: 'Rosé', color: 'rose', available: false,
+                     body: 2, sweet: 0, acid: 2, tannin: 0, taste: 'легке, ягідне',
                      notes: { any: 'Сухе рожеве — до закусок' } },
   };
   // що радити першим для кожної страви / кольору; перший доступний — вибір МГ
@@ -106,6 +122,14 @@
     snacks: ['pistachios', 'grapesRed', 'grapes'],
     checkout: 'Оформити замовлення',
     keep: x => `Лишити ${x}`,
+    // смак — простими словами; відносні слова рахуються від вибору МГ у показаній добірці
+    lighter: 'Легше',
+    fuller: 'Насиченіше',
+    sweeter: 'Солодше',
+    light: 'Легке й свіже',  // два описи замість терміна, коли гість не знає, чого хоче
+    full: 'Насичене й щільне',
+    askTaste: 'Або скажи, що ближче на смак.',
+    avoid: { acid: 'без кислинки', tannin: 'без терпкості', sweet: 'без солодкості' },
   };
 
   const price = id => DATA.products[id].price;
@@ -128,25 +152,47 @@
     exclude: [],              // «інший варіант» — уже показані
     shown: [],                // остання добірка
     added: null,              // останнє вино, додане через чат
+    body: null,               // смак: { max?, min?, sort: 'asc'|'desc', ref? } — «легше», «насичене»
+    like: null,               // «люблю Prosecco» — схоже на це вино
+    sweet: null,              // true — з солодкістю
+    avoid: [],                // не любить: acid | tannin | sweet
   });
+  const hasTaste = st => !!(st.body || st.like || st.sweet || st.avoid.length);
+  // наскільки вино схоже на інше за смаком (менше — ближче)
+  const dist = (a, b) => Math.abs(W[a].body - W[b].body) + Math.abs(W[a].acid - W[b].acid)
+    + Math.abs(W[a].tannin - W[b].tannin) + 2 * Math.abs(W[a].sweet - W[b].sweet) + (W[a].color === W[b].color ? 0 : 1);
 
   /** Вина, що проходять усі умови, у порядку для страви / кольору */
   function pool(st, { ignore = [] } = {}) {
-    const order = st.dish === 'undecided' ? ORDER.any
+    const order = st.dish === 'undecided' ? [...new Set([...ORDER.any, ...Object.keys(W)])]
       : st.dish ? ORDER[st.dish]
       : st.color ? ORDER[st.color] : Object.keys(W);
-    return order.filter(id => {
+    const taste = !ignore.includes('taste');
+    const list = order.filter(id => {
       const w = W[id];
-      if (w.available === false || st.exclude.includes(id)) return false;
+      if (w.available === false || st.exclude.includes(id) || (taste && id === st.like)) return false;
       if (!ignore.includes('color') && st.color && w.color !== st.color) return false;
       if (!ignore.includes('price') && st.max && price(id) > st.max) return false;
       if (!ignore.includes('price') && st.below && price(id) >= st.below) return false;
+      if (taste && st.body && st.body.max && w.body > st.body.max) return false;
+      if (taste && st.body && st.body.min && w.body < st.body.min) return false;
+      if (taste && st.sweet && !w.sweet) return false;
+      if (taste && st.avoid.includes('acid') && w.acid > 2) return false;
+      if (taste && st.avoid.includes('tannin') && w.tannin > 2) return false;
+      if (taste && st.avoid.includes('sweet') && w.sweet) return false;
       return true;
     });
+    if (taste && st.like) return list.sort((a, b) => dist(a, st.like) - dist(b, st.like));
+    if (taste && st.body) return list.sort((a, b) => (st.body.sort === 'asc' ? 1 : -1) * (W[a].body - W[b].body));
+    return list;
   }
 
   /** Добірка під поточні умови: до 3 вин з підписами, перше — вибір МГ */
   function select(st) {
+    if (hasTaste(st)) {
+      // смак задано — підпис каже смак, щоб варіанти відрізнялись саме ним
+      return pool(st).slice(0, st.dish === 'undecided' ? 2 : 3).map((id, i) => ({ id, note: cap(W[id].taste), pick: i === 0 }));
+    }
     if (!st.dish && !st.color) {
       // розкид без страви: універсальне (вибір МГ) · до мʼяса · до риби
       const p = pool(st);
@@ -177,7 +223,7 @@
     const ids = items.map(i => i.id), kept = ids.filter(id => prev.includes(id)), added = ids.length - kept.length;
     if (!kept.length) return `${lead} — ${ids.length === 1 ? 'є такий варіант' : `ось ${count(ids.length, VARIANTS)}`}:`;
     if (!added) return `${lead} — лишив ${names(kept)}.`;
-    return `${lead} — лишив ${names(kept)} і додав ${['', 'ще одне', 'ще два', 'ще три'][added] || `ще ${added}`}.`;
+    return `${lead} — лишив ${names(kept)}, додав ${['', 'ще одне', 'ще два', 'ще три'][added] || `ще ${added}`}.`;
   }
 
   /* ---------- Відповіді ----------
@@ -190,10 +236,10 @@
   ];
 
   /** Відповідь на поточні умови */
-  function respond() {
+  function respond(lead) {
     const prev = S.shown;
     const items = select(S);
-    if (!items.length) return noMatch();
+    if (!items.length) return hasTaste(S) && pool(S, { ignore: ['taste'] }).length ? tasteMiss() : noMatch();
     S.shown = items.map(i => i.id);
     const pick = items[0].id;
     const ctx = context(S);
@@ -201,38 +247,113 @@
     // страву ще не знаємо — одне питання під добіркою
     if (!S.dish) {
       return {
-        text: S.color ? changeLine(prev, items, cap(T.colorCtx[S.color]))
+        text: lead ? changeLine(prev, items, lead)
+          : S.color ? changeLine(prev, items, cap(T.colorCtx[S.color]))
           : prev.length ? changeLine(prev, items, 'До різних страв')
           : `Ось три варіанти до різних страв, усі до ${money(S.max)}.`,
         items, after: T.askDish, chips: dishChips(), context: ctx,
       };
     }
     if (S.dish === 'undecided') {
+      if (hasTaste(S)) return {
+        text: changeLine(prev, items, lead || 'Під твій смак'),
+        items, context: ctx,
+        after: `Мій вибір — ${W[pick].short}: ${W[pick].taste}. Або візьми пару: одне червоне й одне біле.`,
+        chips: [addChip(pick), node(T.pair, () => pair()), node(T.cheaper, cheaper)],
+      };
+      // не знає, чого хоче — вибір між двома описами смаку, а не термінами
       return {
         text: 'Тоді те, що не сперечається зі стравою:',
         items, context: ctx,
-        after: `Найнадійніше — ${W[pick].short}: ${lc(plain(W[pick].notes.any))}. Або візьми пару: одне червоне й одне біле.`,
-        chips: [addChip(pick), node(T.pair, () => pair()), node(T.cheaper, cheaper)],
+        after: `Найнадійніше — ${W[pick].short}: ${lc(plain(W[pick].notes.any))}. ${T.askTaste}`,
+        chips: [addChip(pick),
+          node(T.light, () => update({ body: { max: 2, sort: 'asc' }, like: null }, { lead: T.light })),
+          node(T.full, () => update({ body: { min: 3, sort: 'desc' }, like: null }, { lead: T.full })),
+          node(T.pair, () => pair())],
       };
     }
-    const why = lc(plain(W[pick].notes[S.dish] || W[pick].notes.any));
+    const why = hasTaste(S) ? W[pick].taste : lc(plain(W[pick].notes[S.dish] || W[pick].notes.any));
     return {
-      text: changeLine(prev, items, cap(T.dishCtx[S.dish])),
+      text: changeLine(prev, items, lead || cap(T.dishCtx[S.dish])),
       items, context: ctx,
       after: items.length > 1 ? `Мій вибір — ${W[pick].short}: ${why}.` : `${W[pick].short}: ${why}.`,
-      chips: [addChip(pick), node(T.cheaper, cheaper), node(T.other, other), ...(items.length > 1 ? [node(T.compare, compare)] : [])].slice(0, 4),
+      chips: [addChip(pick), node(T.cheaper, cheaper), ...tasteChips().slice(0, 1),
+        ...(items.length > 1 ? [node(T.compare, compare)] : []), node(T.other, other)].slice(0, 4),
+    };
+  }
+
+  /* ---------- Смак ----------
+     «Легше» / «Насиченіше» — відносно вибору МГ (першого в показаній добірці);
+     чіп показуємо, лише коли такий варіант справді є в умовах. */
+  function lighter() {
+    const ref = S.shown[0];
+    return update({ body: { max: W[ref].body - 1, sort: 'desc', ref }, like: null }, { lead: `Легше за ${W[ref].short}` });
+  }
+  function fuller() {
+    const ref = S.shown[0];
+    return update({ body: { min: W[ref].body + 1, sort: 'asc', ref }, like: null }, { lead: `Насиченіше за ${W[ref].short}` });
+  }
+  function sweeter() {
+    return update({ sweet: true, avoid: S.avoid.filter(a => a !== 'sweet') }, { lead: 'З легкою солодкістю' });
+  }
+  function tasteChips() {
+    const ref = S.shown[0];
+    if (!ref) return [];
+    const can = patch => pool({ ...S, ...patch, like: null, exclude: [] }).length > 0;
+    const w = W[ref];
+    return [
+      w.body > 1 && can({ body: { max: w.body - 1 } }) && node(T.lighter, lighter),
+      w.body < 5 && can({ body: { min: w.body + 1 } }) && node(T.fuller, fuller),
+      !w.sweet && !S.sweet && can({ sweet: true, avoid: S.avoid.filter(a => a !== 'sweet') }) && node(T.sweeter, sweeter),
+    ].filter(Boolean);
+  }
+  /** Смак словами для «чесно: … немає» */
+  function tasteWords(st) {
+    const b = st.body;
+    return [
+      b && b.max && b.ref && `легшого за ${W[b.ref].short}`,
+      b && b.min && b.ref && `насиченішого за ${W[b.ref].short}`,
+      st.like && `схожого на ${W[st.like].short}`,
+      st.sweet && 'з солодкістю',
+      ...st.avoid.map(a => T.avoid[a]),
+    ].filter(Boolean).join(', ');
+  }
+
+  /** Смак не сходиться зі стравою чи кольором: кажемо прямо і даємо два шляхи */
+  function tasteMiss() {
+    const gen = { red: 'червоного', white: 'білого', sparkling: 'ігристого' };
+    const what = [S.color ? `${gen[S.color]} вина` : 'вина', S.dish && S.dish !== 'undecided' && T.dishCtx[S.dish]].filter(Boolean).join(' ');
+    const tw = tasteWords(S);
+    const adj = S.body && !S.body.ref ? (S.body.max ? 'легкого ' : 'насиченого ') : ''; // «легкого білого вина до риби»
+    const A = pool({ ...S, exclude: [] }, { ignore: ['taste'] })[0];                        // те, що до страви, але інший смак
+    const B = pool({ ...S, dish: null, color: null, exclude: [] }).find(id => id !== A);    // смак той, але інше
+    const cond = S.dish && S.dish !== 'undecided' ? T.dishCtx[S.dish] : S.color ? T.colorCtx[S.color] : 'ціна';
+    const items = [A && { id: A, note: `${cap(cond)}, але ${W[A].taste}` },
+                   B && { id: B, note: `${cap(W[B].taste)} — ${W[B].color === 'red' ? 'червоне' : W[B].color === 'white' ? 'біле' : 'ігристе'}` }].filter(Boolean);
+    S.shown = items.map(i => i.id);
+    S.exclude = [];
+    return {
+      noMatch: true,
+      text: `Чесно: ${adj}${what}${tw ? ` ${tw}` : ''} зараз немає.${items.length === 2 ? ' Є два шляхи:' : items.length ? ' Найближче — ось:' : ''}`,
+      items, context: context(S),
+      after: A && B ? `Що важливіше — ${cond} чи смак?` : null,
+      chips: items.map(i => addChip(i.id)),
     };
   }
 
   /** Змінити одну умову й відповісти */
   /** said: умову назвав гість у цій репліці (чіп або текст) — у рядку контексту її не повторюємо */
-  function update(patch, { said = true } = {}) {
+  function update(patch, { said = true, lead } = {}) {
     S.just = said ? Object.keys(patch).filter(k => k !== 'maxSource' && patch[k] != null && !(k === 'max' && patch.maxSource !== 'guest')) : [];
-    if ('dish' in patch || 'color' in patch) S.exclude = [];
+    if (['dish', 'color', 'body', 'like', 'sweet', 'avoid'].some(k => k in patch)) S.exclude = [];
     if ('max' in patch) S.below = null;
-    Object.assign(S, patch);
+    // «легше за X» стосується показаної добірки: нова страва чи колір — нова добірка, відносний смак знімаємо
+    if (('dish' in patch || 'color' in patch) && !('body' in patch) && S.body && S.body.ref) S.body = null;
+    const { skip, ...rest } = patch;
+    Object.assign(S, rest);
+    if (skip) S.exclude = [...new Set([...S.exclude, ...skip])]; // «не люблю Malbec»
     S.added = null;
-    return respond();
+    return respond(lead);
   }
 
   /** «Дорого» / «Дешевше» — дешевше за найдешевше з показаного; після додавання — заміна */
@@ -285,9 +406,10 @@
     const info = id => Object.fromEntries((DATA.pdp.products[id]?.details || []).map(r => [r.label, r.value]));
     const lines = S.shown.map(id => {
       const d = info(id);
-      return `${W[id].short} — ${lc(d['Колір вина'])} ${lc(d['Смак вина'])}, ${d['Країна походження']}, кислотність ${lc(d['Кислотність'])}, ${money(price(id))}`;
+      return `${W[id].short} — ${lc(d['Колір вина'])}: ${W[id].taste}. ${d['Країна походження']}, ${money(price(id))}`;
     });
-    return { text: lines.join('\n'), chips: [addChip(S.shown[0]), node(T.cheaper, cheaper), node(T.other, other)] };
+    // після порівняння найчастіше кажуть «хочу легше» — тому смакові чіпси тут першими
+    return { text: lines.join('\n'), chips: [addChip(S.shown[0]), ...tasteChips(), node(T.cheaper, cheaper), node(T.other, other)].slice(0, 4) };
   }
 
   /* «Пара: червоне й біле» — це набір, який беруть цілком, тож за правилом «Форма результату»
@@ -394,9 +516,15 @@
           return { text: `Скасував: ${names(ids)} ${ids.length === 1 ? 'прибрав' : 'прибрав'} з кошика.`, chips: back && back.chips };
         },
       },
-      text: T.snacksAsk,
-      chips: [node(T.snacksYes, snacks), { label: T.checkout, go: 'cart' }],
+      ...afterAdd(),
     };
+  }
+  /** Після додавання — один суміжний крок (Scenarios.nextStep): мінімальне замовлення, доставка
+      або свій — закуска до вина; докласти пропонуємо теж закуски */
+  function afterAdd() {
+    const f = Scenarios.nextStep({ scenario: 'wine', own: node(T.snacksYes, snacks), fill: T.snacks });
+    if (f.kind === 'own') return { text: T.snacksAsk, chips: [f.chip] };
+    return { text: `У кошику на ${money(Cart.total())}${f.note}.`, chips: [f.chip].filter(Boolean) };
   }
 
   function snacks() {
@@ -430,18 +558,15 @@
           return { text: `Скасував: повернув ${W[from].short}.`, chips: back && back.chips };
         },
       },
-      text: `Решта кошика без змін. У кошику на ${money(Cart.total())}.`,
-      chips: [{ label: T.checkout, go: 'cart' }],
+      ...(() => { const f = Scenarios.nextStep({ scenario: 'wine', fill: T.snacks });
+        return { text: `Решта кошика без змін. У кошику на ${money(Cart.total())}${f.note}.`, chips: [f.chip].filter(Boolean) }; })(),
     };
   }
 
   /* ---------- Старт ---------- */
-  function start({ dish = null, color = null, max } = {}) {
+  function start(patch = {}, lead) {
     S = fresh();
-    S.dish = dish; S.color = color;
-    if (max !== undefined) Object.assign(S, { max, maxSource: max ? 'guest' : null });
-    S.just = [dish && 'dish', color && 'color', max && 'max'].filter(Boolean); // щойно сказав гість
-    return respond();
+    return update(patch, { lead }); // update запамʼятовує, що гість щойно сказав (S.just)
   }
 
   /* ---------- Своїми словами ---------- */
@@ -455,30 +580,84 @@
     const m = t.replace(/(\d)\s(?=\d{3}\b)/g, '$1').match(/(\d{3,6})/);
     return m ? Number(m[1]) : undefined;
   };
-  const patchOf = t => {
+  // «не люблю кислинку», «без терпкості», «не дуже солодке» — заперечення поруч зі словом
+  const neg = (t, root) => new RegExp(`(^|\\s)(не|без)\\s+(\\S+\\s+){0,2}?\\S*(${root})`).test(t);
+  const NAMES = [ // каберне раніше за совіньйон: «каберне совіньйон»
+    ['wineLail', /лаїл|lail/], ['wineCabernet', /каберне|cabernet/], ['wineMalbec', /мальбек|malbec/],
+    ['winePinot', /піно|pinot/], ['wineSauvignon', /совіньйон|sauvignon/], ['wineRiesling', /рислінг|riesling/],
+    ['winePascal', /шабл|chablis/], ['wineCasa', /вінью|vinho|верде/], ['wineProsecco', /просекко|prosecco/],
+    ['wineRose', /розе|рожев|rosé|rose/],
+  ];
+  const nameOf = t => (NAMES.find(([, re]) => re.test(t)) || [])[0];
+  /** Смак своїми словами → { patch, lead }; relative — є показана добірка, «легше» рахуємо від неї */
+  function tasteOf(t, relative) {
+    const patch = {}, leads = [], avoid = new Set(S ? S.avoid : []);
+    if (/кисл/.test(t) && neg(t, 'кисл')) { avoid.add('acid'); leads.push(T.avoid.acid); }
+    if ((/терпк|в[ʼ'’]?яж|танін/.test(t) && neg(t, 'терпк|в[ʼ\'’]?яж|танін')) || /м[ʼ'’]?якш|м[ʼ'’]?яке/.test(t)) { avoid.add('tannin'); leads.push(T.avoid.tannin); }
+    if (/солод|напівсух/.test(t)) {
+      if (neg(t, 'солод')) { avoid.add('sweet'); patch.sweet = null; leads.push(T.avoid.sweet); }
+      else { avoid.delete('sweet'); patch.sweet = true; leads.push('з легкою солодкістю'); }
+    }
+    if (avoid.size !== (S ? S.avoid.length : 0) || [...avoid].some(a => !(S && S.avoid.includes(a)))) patch.avoid = [...avoid];
+    const ref = relative && S && S.shown[0];
+    if (/легш/.test(t) && ref) { patch.body = { max: W[ref].body - 1, sort: 'desc', ref }; leads.push(`легше за ${W[ref].short}`); }
+    else if (/легш|легк/.test(t) || (/свіж/.test(t) && !dishOf(t))) { patch.body = { max: 2, sort: 'asc' }; leads.push('легке й свіже'); }
+    else if (/насиченіш|щільніш|потужніш|важч/.test(t) && ref) { patch.body = { min: W[ref].body + 1, sort: 'asc', ref }; leads.push(`насиченіше за ${W[ref].short}`); }
+    else if (/насичен|щільн|потужн|важк/.test(t)) { patch.body = { min: 3, sort: 'desc' }; leads.push('насичене й щільне'); }
+    if (patch.body) patch.like = null;
+    return Object.keys(patch).length ? { patch, lead: leads.join(', ') } : null;
+  }
+  /** «Люблю Prosecco» → схоже на нього; «не люблю Malbec» → без нього */
+  function likeOf(t) {
+    const id = nameOf(t);
+    if (!id) return null;
+    const re = NAMES.find(([k]) => k === id)[1].source;
+    if (neg(t, re)) return { patch: { skip: [id] }, lead: `Без ${W[id].short}` };
+    if (/люб|подоба|сподоба|схож|як\s|типу|смакув|пив|пила|пили|кшталт/.test(t)) return { patch: { like: id, body: null }, lead: `Схоже на ${W[id].short}`, id };
+    return null;
+  }
+  const patchOf = (t, relative) => {
     const patch = {}, dish = dishOf(t), color = colorOf(t), max = maxOf(t);
     if (dish) patch.dish = dish;
     if (color) patch.color = color;
     if (max !== undefined) Object.assign(patch, { max, maxSource: max ? 'guest' : null });
-    return Object.keys(patch).length ? patch : null;
+    const taste = tasteOf(t, relative);
+    if (taste) Object.assign(patch, taste.patch);
+    if (!Object.keys(patch).length) return null;
+    const lead = taste && cap([dish && T.dishCtx[dish], taste.lead].filter(Boolean).join(', '));
+    return { patch, lead };
   };
+  /** Відповідь на «люблю X»; X немає в наявності — кажемо це і показуємо схоже */
+  function likeAnswer(l) {
+    const r = update(l.patch, { lead: l.lead });
+    if (l.id && W[l.id].available === false && !r.noMatch) r.text = `${W[l.id].short} зараз немає в наявності. Найближче за смаком:`;
+    return r;
+  }
 
   function route(t, last) {
     if (last && last.wine && S) {
+      const like = likeOf(t);
+      if (like) return node(t, () => likeAnswer(like));
       if (/розе|рожев|rosé|rose/.test(t)) return node(t, () => ({
         text: 'Rosé зараз немає в наявності. Найближче за характером — Pinot Noir: теж легке й універсальне.',
         items: [{ id: 'winePinot', note: plain(W.winePinot.notes.any) }],
         chips: [addChip('winePinot'), node(T.other, other)],
       }));
       if (/дорог|дешевш|дешевле/.test(t)) return node(t, cheaper);
-      if (/інш|ще варіант|не те|пробував/.test(t)) return node(t, other);
+      // смак і умови — раніше за «інший»: «не терпке» містить «не те»
       if (/відрізн|різниц|порівня/.test(t)) return node(t, compare);
+      const p = patchOf(t, true);
+      if (p) return node(t, () => update(p.patch, { lead: p.lead }));
+      if (/інш|ще варіант|не те|пробував/.test(t)) return node(t, other);
       if (/не вирішив|не знаю|ще не/.test(t)) return node(t, () => update({ dish: 'undecided' }));
-      const patch = patchOf(t);
-      if (patch) return node(t, () => update(patch));
     }
-    if (!/вин|шабл|chablis|каберне|мальбек|піно|просекко/.test(t)) return null;
-    return node(t, () => start({ dish: dishOf(t), color: colorOf(t), max: maxOf(t) }));
+    if (!/вин|шабл|chablis|каберне|мальбек|піно|просекко|совіньйон|рислінг|розе/.test(t)) return null;
+    return node(t, () => {
+      S = fresh();
+      const like = likeOf(t), p = patchOf(t, false);
+      if (like) return likeAnswer({ ...like, patch: { ...(p ? p.patch : {}), ...like.patch } });
+      return update(p ? p.patch : {}, { lead: p && p.lead });
+    });
   }
 
   /** «×» у рядку контексту: прибрати умову (страву, колір, межу ціни) */

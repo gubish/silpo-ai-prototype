@@ -1,5 +1,5 @@
 """Намальовані баночки майонезу для сценарію «Заміна товару» (гілка Chats)
-→ assets/images/products/demo/mayo-<id>.svg. Не фото реальних товарів: на етикетці «ДЕМО».
+→ assets/images/products/demo/mayo-<id>.svg. Не фото реальних товарів.
     python3 tools/make-demo-mayo.py"""
 import pathlib
 
@@ -19,7 +19,6 @@ def svg(l1, l2, lid, label, ink):
   <rect x="88" y="150" width="148" height="86" rx="6" fill="{label}"/>
   <text x="162" y="184" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="17" fill="{ink}">{l1}</text>
   <text x="162" y="206" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="{ink}">майонез · {l2}</text>
-  <text x="162" y="226" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" letter-spacing="2" fill="#9a8a7a">ДЕМО</text>
 </svg>
 '''
 

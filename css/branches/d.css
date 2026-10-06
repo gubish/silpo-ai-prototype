@@ -184,6 +184,17 @@
 .ai-list__meta b { font-weight: var(--fw-semibold); color: var(--ink-100); }
 .ai-list__meta s { color: rgba(32, 33, 36, 0.45); }
 .ai-list__meta em { font-style: normal; font-weight: var(--fw-semibold); color: var(--blue-500); }
+.ai-list__hint { color: var(--black-56, rgba(32, 33, 36, 0.56)); font-style: italic; }
+/* шапка рецепта в чернетці: час · порції, кроки згорнуті */
+.ai-recipe { padding: 0 var(--space-12) var(--space-8); font-size: 13px; line-height: 18px; color: var(--black-72); }
+.ai-recipe__meta { display: block; margin-bottom: var(--space-4); }
+.ai-recipe__steps summary { cursor: pointer; font-weight: var(--fw-semibold); color: var(--blue-500); list-style: none; }
+.ai-recipe__steps summary::-webkit-details-marker { display: none; }
+.ai-recipe__steps summary::after { content: ' ▾'; }
+.ai-recipe__steps[open] summary::after { content: ' ▴'; }
+.ai-recipe__steps ol { margin: var(--space-4) 0 0; padding-left: 18px; color: var(--ink-100); }
+.ai-recipe__steps li + li { margin-top: 2px; }
+.ai-recipe__link { display: inline-block; margin-top: var(--space-4); color: var(--blue-500); font-weight: var(--fw-semibold); text-decoration: none; }
 /* кнопка заміни — іконка з проду (assets/icons/change.svg), 32×32 */
 .ai-list__swap { flex: none; width: 32px; height: 32px; padding: 0; border-radius: 8px; }
 .ai-list__swap img { display: block; width: 32px; height: 32px; }
@@ -264,3 +275,9 @@
   color: var(--blue-500);
 }
 .ai-card-act:active { background: var(--blue-50); }
+
+/* фото від гостя в чаті (сценарій «Список із фото») */
+.ai-msg__photo { display: block; width: 200px; height: auto; border-radius: 16px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+/* невпевнений рядок розпізнаного списку — МГ питає саме про нього */
+.ai-list__row.is-ask { background: #fff8e1; }
+.ai-list__row.is-ask .ai-list__hint { color: #9a6700; font-style: normal; font-weight: var(--fw-semibold); }

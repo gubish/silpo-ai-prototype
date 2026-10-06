@@ -14,7 +14,7 @@
    • Чернетка — компактні рядки: «− N шт +» і кнопка заміни; мінус на 1 шт (кошик) = «не беру»
      (рядок сіріє, повертається «+»). Кнопка «Додати в кошик · сума» рахує лише те, що беремо.
    • «Додати в кошик» → «✓ Додано в кошик · Скасувати» і один крок — оформити.
-   Демо: 3 майонези (DEMO нижче, намальовані баночки — tools/make-demo-mayo.py, «(демо)» в назві).
+   Демо: 3 майонези (DEMO нижче, намальовані баночки — tools/make-demo-mayo.py).
    Тексти — T, заміни — ALT, ключові слова товарів — WORDS.
    ===================================================================== */
 
@@ -23,18 +23,17 @@
 
   /* ---------- Демо-майонези (лише гілка Chats) ---------- */
   const DEMO = {
-    mayoHome:  { name: 'Майонез «Домашній» 72%, 300 г (демо)', short: 'майонез «Домашній»', price: 89, img: 'home',
+    mayoHome:  { name: 'Майонез «Домашній» 72%, 300 г', short: 'майонез «Домашній»', price: 89, img: 'home',
                  comp: 'Олія соняшникова, вода, яєчний жовток, гірчиця, цукор, сіль, оцет.', allergens: 'яйця, гірчиця' },
-    mayoLight: { name: 'Майонез легкий 30%, 250 г (демо)', short: 'легкий майонез', price: 99, img: 'light',
+    mayoLight: { name: 'Майонез легкий 30%, 250 г', short: 'легкий майонез', price: 99, img: 'light',
                  comp: 'Вода, олія соняшникова, крохмаль, яєчний жовток, гірчиця, сіль, оцет.', allergens: 'яйця, гірчиця' },
-    mayoVegan: { name: 'Майонез без яєць, пісний, 250 г (демо)', short: 'майонез без яєць', price: 129, img: 'vegan',
+    mayoVegan: { name: 'Майонез без яєць, пісний, 250 г', short: 'майонез без яєць', price: 129, img: 'vegan',
                  comp: 'Олія соняшникова, вода, білок гороху, гірчиця, сіль, лимонний сік.', allergens: 'гірчиця' },
   };
   Object.entries(DEMO).forEach(([id, d]) => {
-    DATA.products[id] = { name: d.name, shortName: d.name.replace(/, \d+ г \(демо\)$/, ' (демо)'), price: d.price, weight: d.name.match(/(\d+ г)/)[1],
+    DATA.products[id] = { name: d.name, shortName: d.name.replace(/, \d+ г$/, ''), price: d.price, weight: d.name.match(/(\d+ г)/)[1],
                           image: `assets/images/products/demo/mayo-${d.img}.svg` };
     DATA.pdp.products[id] = {
-      description: 'Демонстраційний товар для сценарію чату: ціна, наявність і фото умовні.',
       composition: { text: d.comp, allergens: { label: 'Алергени:', value: d.allergens } },
     };
   });
@@ -83,7 +82,7 @@
     opener: 'Зібрати кошик',
     draftTitle: 'Чернетка кошика',
     built: (n, note) => `Зібрав кошик на кілька днів — ${n}${note}. Перевір, що все підходить:`,
-    ask: 'Кількість — плюс і мінус у рядку, непотрібне — кошиком. Хочеш інше — значок заміни.',
+    ask: 'Кількість змінюй у рядку, непотрібне прибери, інше — заміни. Або просто напиши, що не так.',
     addAll: 'Додати все в кошик',
     replaceSome: 'Замінити товар',
     whichOne: 'Що саме замінити?',
@@ -197,7 +196,7 @@
         text: `Замінено в кошику: ${nameOf(from)} → ${nameOf(to)}`,
         undo: () => { swapInCart(to, from); Scenarios.cartNew.delete(to); return { text: `Скасував: повернув ${nameOf(from)} у кошик.`, chips: [backNode()] }; },
       },
-      ...(() => { const f = followUp(); return { text: `Решта кошика без змін. У кошику на ${money(Cart.total())}${f.note}.`, chips: [backNode(), f.chip] }; })(),
+      ...(() => { const f = followUp(); return { text: `Решта кошика без змін. У кошику на ${money(Cart.total())}${f.note}.`, chips: [backNode(), f.chip].filter(Boolean) }; })(),
     };
   }
   function cartRemove(id) {
@@ -232,16 +231,17 @@
   }
   /** Наступний поріг доставки: { price, left } або null */
   function nextDelivery() { return deliveryFor(poolTotal()); }
-  function deliveryFor(t) {
-    const d = DATA.cart.delivery;
-    const tier = (d.tiers || []).filter(x => x.from > t).sort((a, b) => a.from - b.from)[0];
-    return tier ? { price: tier.price, left: tier.from - t } : null;
-  }
+  const deliveryFor = t => Scenarios.deliveryFor(t);
+  /** Один суміжний крок — спільна логіка Scenarios.nextStep (js/scenarios/engine.js);
+      тут лише свої кроки: «Де ще зекономити?», доставка з «Додати» в чернетку, «Замінити ще щось» */
   function followUp() {
-    if (S.priceMatters) return { chip: node('Де ще зекономити?', saveMore), note: '' };
-    const nd = nextDelivery();
-    if (nd && nd.left <= 300) return { chip: node('Як доставити дешевше?', deliveryTip), note: ` — до доставки за ${money(nd.price)} ще ${money(nd.left)}` };
-    return { chip: node(T.replaceMore, () => askWhich()), note: '' };
+    return Scenarios.nextStep({
+      scenario: 'replace', total: poolTotal(),
+      save: S.priceMatters ? node('Де ще зекономити?', saveMore) : null,
+      delivery: node('Як доставити дешевше?', deliveryTip),
+      own: node(T.replaceMore, () => askWhich()),
+      back: inCart() ? backNode() : null,
+    });
   }
 
   /** «Де ще зекономити?» — лише рівноцінні заміни (менша пляшка не рахується) */
@@ -272,12 +272,7 @@
     };
   }
 
-  /** «до 1 500 ₴ — 99 ₴, від 1 500 ₴ — 69 ₴, від 2 000 ₴ — 1 ₴» (DATA.cart.delivery) */
-  function deliveryRules() {
-    const d = DATA.cart.delivery, tiers = [...(d.tiers || [])].sort((a, b) => a.from - b.from);
-    return [`${d.min ? `від ${money(d.min)}` : `до ${money(tiers[0].from)}`} — ${money(d.price)}`,
-      ...tiers.map(t => `від ${money(t.from)} — ${money(t.price)}`)].join(', ');
-  }
+  const deliveryRules = () => Scenarios.deliveryRules();
 
   /** «Як доставити дешевше?» — факт про поріг + що часто докладають */
   function deliveryTip() {
@@ -424,9 +419,10 @@
           return { text: 'Скасував: прибрав чернетку з кошика.', list: draftList(), chips: [node(T.replaceSome, askWhich)] };
         },
       },
-      text: `У кошику на ${money(Cart.total())}. Оформлюємо?`,
       list: draftList(),
-      chips: [{ label: T.checkout, go: 'cart' }],
+      // завдання виконано — один суміжний крок (Scenarios.nextStep), уже від справжнього кошика
+      ...(() => { const f = Scenarios.nextStep({ scenario: 'replace' });
+        return { text: `У кошику на ${money(Cart.total())}${f.note}.`, chips: [f.chip].filter(Boolean) }; })(),
     };
   }
 

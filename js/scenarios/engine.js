@@ -31,6 +31,107 @@ const Scenarios = {
   if (!Branch.is('c')) return; // C і Chats (D збудована на C)
   const chat = AiChat;
 
+  /* ---------- Один суміжний крок після виконаного завдання — спільний для всіх сценаріїв ----------
+     (правило «Будова відповіді», п. 6). Викликати лише після завершеного завдання: додали набір чи вино
+     в кошик, замінили товар. Пріоритет:
+       1. кошик менший за мінімальне замовлення → «Що докласти?» (блокер — важливіший за все);
+       2. гість казав «дорого» → save (крок сценарію «Де ще зекономити?»);
+       3. до дешевшої доставки ≤ 300 ₴ → «Як доставити дешевше?», сума — у тексті (note);
+       4. own — суміжний крок самого сценарію (закуска до вина, «Щось солодке», «Замінити ще щось»);
+       5. інакше «Оформити замовлення» (поверх кошика — нічого: там уже є «Повернутись у кошик»).
+     opts: { scenario, total (типово — кошик), save, delivery (свій крок доставки, напр. у чернетку),
+             own, fill (що пропонувати докласти), back (крок «Повернутись у кошик», якщо чат поверх кошика) }
+     → { chip, note, kind } */
+  const NEAR = 300;
+  const money = v => UI.money(v).replace('.00', '');
+  const delivery = () => DATA.cart.delivery || {};
+  Scenarios.deliveryFor = t => {
+    const tier = (delivery().tiers || []).filter(x => x.from > t).sort((a, b) => a.from - b.from)[0];
+    return tier ? { price: tier.price, left: tier.from - t } : null;
+  };
+  /** «від 800 ₴ — 99 ₴, від 1 500 ₴ — 69 ₴, від 2 000 ₴ — 1 ₴» */
+  Scenarios.deliveryRules = () => {
+    const d = delivery(), tiers = [...(d.tiers || [])].sort((a, b) => a.from - b.from);
+    return [`${d.min ? `від ${money(d.min)}` : `до ${money(tiers[0].from)}`} — ${money(d.price)}`,
+      ...tiers.map(t => `від ${money(t.from)} — ${money(t.price)}`)].join(', ');
+  };
+  const FILL = ['pistachios', 'grapesRed', 'oliveOil']; // що часто докладають, якщо сценарій не дав свого
+  /** Набір, що закриває різницю до порогу, з найменшою переплатою: з товарів сценарію (fill) і типових,
+      яких ще немає в кошику. Навіть усіх не вистачає — додаємо кількість найдешевшому.
+      Це набір, який беруть цілком → чернетка-список */
+  function fillRows(opts, need) {
+    const price = id => DATA.products[id].price;
+    const ids = [...new Set([...(opts.fill || []), ...FILL])].filter(id => DATA.products[id] && !Cart.items.has(id)).slice(0, 5);
+    let best = null;
+    for (let mask = 1; mask < 1 << ids.length; mask++) {
+      const set = ids.filter((_, i) => mask & (1 << i));
+      const sum = set.reduce((t, id) => t + price(id), 0);
+      if (sum < need) continue;
+      if (!best || sum < best.sum || (sum === best.sum && set.length < best.set.length)) best = { set, sum };
+    }
+    if (best) return best.set.map(id => ({ id, qty: 1 }));
+    const rows = ids.map(id => ({ id, qty: 1 }));
+    const cheapest = [...rows].sort((a, b) => price(a.id) - price(b.id))[0];
+    const sum = () => rows.reduce((t, r) => t + price(r.id) * r.qty, 0);
+    for (let k = 0; cheapest && sum() < need && k < 10; k++) cheapest.qty++;
+    return rows;
+  }
+  /** Відповідь «Що докласти?» / «Як доставити дешевше?»: чернетка з однією кнопкою «Додати в кошик» */
+  function fillStep(opts, step, need, lead, title) {
+    const rows = fillRows(opts, need);
+    if (!rows.length) return { text: `${lead} Усе, що зазвичай докладають, уже в кошику.`, chips: opts.back ? [opts.back] : [] };
+    let done = false;
+    const list = {
+      title, rows, addLabel: 'Додати в кошик',
+      // кнопка чернетки — тут, а не в сценарії: у вина чи рецепта свої чернетки
+      onAdd: cur => (done ? null : step('Додай у кошик', () => {
+        const add = cur.filter(r => !r.off).map(r => ({ id: r.id, qty: r.qty || 1 }));
+        if (!add.length) return null;
+        done = true;
+        add.forEach(r => Cart.add(r.id, r.qty));
+        const m = chat.thread.find(x => x.kind === 'list' && x.rows === cur);
+        if (m) m.inCart = true;
+        const f = Scenarios.nextStep({ ...opts, own: null });
+        return {
+          confirm: {
+            text: `Додано в кошик: ${add.length === 1 ? DATA.products[add[0].id].name : `${add.length} ${aiPlural(add.length, ['товар', 'товари', 'товарів'])}`}`,
+            undo: () => {
+              add.forEach(r => Cart.add(r.id, -r.qty)); done = false;
+              if (m) m.inCart = false;
+              return { text: 'Скасував: прибрав їх із кошика.', chips: [opts.back, Scenarios.nextStep(opts).chip].filter(Boolean) };
+            },
+          },
+          text: `У кошику на ${money(Cart.total())}${f.note}.`,
+          chips: [opts.back, f.chip].filter(Boolean),
+        };
+      })),
+    };
+    const sum = rows.reduce((t, r) => t + DATA.products[r.id].price * r.qty, 0);
+    return { text: `${lead} Ось набір на ${money(sum)} — цього вистачить:`, list, chips: opts.back ? [opts.back] : [] };
+  }
+  Scenarios.nextStep = function (opts = {}) {
+    const total = opts.total != null ? opts.total : Cart.total();
+    // крок належить сценарію: його route розуміє наступну репліку (прапорець — wine / replace / photoList…)
+    const flag = String(opts.scenario || '').replace(/-(\w)/g, (_, c) => c.toUpperCase());
+    const step = (label, run) => ({ label, scenario: opts.scenario, [flag]: true, run });
+    const min = delivery().min;
+    if (min && total < min) {
+      const left = min - total;
+      return { kind: 'min', note: ` — до мінімального замовлення ${money(min)} бракує ${money(left)}`,
+        chip: step('Що докласти?', () => fillStep(opts, step, left,
+          `Мінімальне замовлення — ${money(min)}, бракує ${money(left)}.`, `Чернетка: докласти до ${money(min)}`)) };
+    }
+    if (opts.save) return { kind: 'save', note: '', chip: opts.save };
+    const nd = Scenarios.deliveryFor(total);
+    if (nd && nd.left <= NEAR) {
+      return { kind: 'delivery', note: ` — до доставки за ${money(nd.price)} ще ${money(nd.left)}`,
+        chip: opts.delivery || step('Як доставити дешевше?', () => fillStep(opts, step, nd.left,
+          `Доставка: ${Scenarios.deliveryRules()}.\nДо доставки за ${money(nd.price)} не вистачає ${money(nd.left)}.`, `Чернетка: до доставки за ${money(nd.price)}`)) };
+    }
+    if (opts.own) return { kind: 'own', note: '', chip: opts.own };
+    return { kind: 'checkout', note: '', chip: opts.back ? null : { label: 'Оформити замовлення', go: 'cart' } };
+  };
+
   /* Останній крок сценарію — щоб зрозуміти відповідь гостя своїми словами */
   const baseRunNode = chat.runNode;
   chat.runNode = function (n, said) {
@@ -55,7 +156,9 @@ const Scenarios = {
   /** Крок сценарію з run(): слова гостя → [підтвердження дії] → відповідь МГ.
       run() повертає { text, items, after, chips, context, confirm: { text, undo } } */
   function runStep(n, said) {
-    this.push('user', said || n.label);
+    // крок із фото (напр. список покупок): гість «надсилає» фото — повідомлення-картинка
+    if (n.photo && !said) { this.anchor = null; this.thread.push({ from: 'user', photo: n.photo, text: '' }); this.render(); }
+    else this.push('user', said || n.label);
     const r = n.run() || {};
     Scenarios.all[n.scenario]?.remember?.(r);
     if (r.confirm) {
@@ -125,7 +228,8 @@ const Scenarios = {
       if (add) {
         const m = chat.thread[add.dataset.listAdd];
         const s = m && Scenarios.all[m.scenario];
-        const step = s && s.listAdd && s.listAdd(m.rows);
+        // своя кнопка чернетки (напр. «що докласти»), інакше — сценарію
+        const step = m && m.onAdd ? m.onAdd(m.rows) : s && s.listAdd && s.listAdd(m.rows);
         if (step) chat.runNode(step);
         return;
       }
@@ -169,6 +273,15 @@ const Scenarios = {
     return baseAsk(text);
   };
 
+  /* Камера в полі вводу: у прототипі «фото» — готовий рукописний список (сценарій «Список із фото») */
+  document.addEventListener('DOMContentLoaded', () => {
+    const cam = chat.el && chat.el.querySelector('.ai-field__camera');
+    if (cam) cam.addEventListener('click', () => {
+      const s = Scenarios.all['photo-list'];
+      if (s) chat.runNode({ ...s.opener, kind: 'node' });
+    });
+  });
+
   const baseOpen = chat.open;
   chat.open = function (opts) {
     this.el.classList.toggle('is-over', Boolean(App.current && App.current.id !== 'home'));
@@ -202,16 +315,16 @@ const Scenarios = {
   });
   /* Жовті чіпси МГ над кошиком — лише ті, на які МГ має реальну відповідь, не більше трьох:
      «Де зекономити?» — є рівноцінні дешевші заміни; «Як доставити дешевше?» — до порогу ≤ 300 ₴;
-     «Що з цього приготувати?» — у кошику є овочі чи фрукти. Заміна окремого товару — іконкою в рядку. */
+     «Що з цього приготувати?» — у кошику є інгредієнт рецепта. Заміна окремого товару — іконкою в рядку. */
   function cartChips() {
     const body = document.querySelector('#cart .cart-body');
     if (!body) return;
     const R = Scenarios.all.replace;
-    const fresh = [...Cart.items.keys()].some(id => DATA.products[id].kind === 'fruit' || ['tomatoes', 'cabbage'].includes(id));
+    const fresh = Scenarios.all.recipe && Scenarios.all.recipe.cartMatch(); // є інгредієнт якогось рецепта
     const intents = [
       R && R.cartSavings().length && { label: 'Де зекономити?', cartSave: true },
       R && R.cartNearDelivery() && { label: 'Як доставити дешевше?', cartDelivery: true },
-      fresh && { label: 'Що з цього приготувати?', opener: 'Що з цього приготувати?' },
+      fresh && { label: 'Що з цього приготувати?', cartRecipe: true },
     ].filter(Boolean);
     const key = Cart.count() ? intents.map(t => t.label).join('|') : '';
     const old = body.querySelector('.mg-block');
@@ -237,6 +350,7 @@ const Scenarios = {
     if (t.cartReplace) return chatOver(R && R.cartAsk());
     if (t.cartSave) return chatOver(R && R.cartSave());
     if (t.cartDelivery) return chatOver(R && R.cartDelivery());
+    if (t.cartRecipe) return chatOver(Scenarios.all.recipe && Scenarios.all.recipe.cartRecipe());
     return baseMgStart(t);
   };
 

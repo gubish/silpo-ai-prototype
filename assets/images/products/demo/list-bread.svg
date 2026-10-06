@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 324 324" width="324" height="324">
+  <rect width="324" height="324" fill="#fff"/>
+  <path d="M60 200c0-60 46-100 102-100s102 40 102 100v40H60z" fill="#d9a25f"/><path d="M60 240h204v18c0 8-6 14-14 14H74c-8 0-14-6-14-14z" fill="#b97f3e"/><path d="M100 130c10 20 10 40 0 60" stroke="#b97f3e" stroke-width="5" fill="none"/><path d="M132 130c10 20 10 40 0 60" stroke="#b97f3e" stroke-width="5" fill="none"/><path d="M164 130c10 20 10 40 0 60" stroke="#b97f3e" stroke-width="5" fill="none"/><path d="M196 130c10 20 10 40 0 60" stroke="#b97f3e" stroke-width="5" fill="none"/><text x="162" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="#5c3a19">Батон</text><text x="162" y="254" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#5c3a19">нарізний</text>
+  
+</svg>

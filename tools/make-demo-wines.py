@@ -1,5 +1,5 @@
 """Намальовані пляшки для демо-вин гілки D → assets/images/products/demo/<id>.svg.
-Це НЕ фото реальних товарів: на етикетці — сорт і напис «ДЕМО».
+Це НЕ фото реальних товарів: на етикетці — сорт.
 Справжні фото з'являться — замініть image у js/scenarios/wine.js.
     python3 tools/make-demo-wines.py"""
 import pathlib
@@ -37,7 +37,6 @@ def svg(l1, l2, glass, cap, label, shape):
   <rect x="{162 - wide + 4}" y="190" width="{(wide - 4) * 2}" height="78" rx="4" fill="{label}"/>
   <text x="162" y="220" text-anchor="middle" font-family="Georgia, serif" font-size="{13 if len(l1) > 8 else 15}" fill="#3a2a1a">{l1}</text>
   <text x="162" y="238" text-anchor="middle" font-family="Georgia, serif" font-size="11" fill="#3a2a1a">{l2}</text>
-  <text x="162" y="258" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" letter-spacing="2" fill="#9a8a7a">ДЕМО</text>
 </svg>
 '''
 

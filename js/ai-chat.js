@@ -496,7 +496,8 @@ const AiChat = {
       <div class="ai-msg ai-msg--${m.from}${m.cont ? ' ai-msg--cont' : ''}">
         ${i === speaking ? avatar : ''}
         ${context(m, i)}
-        <div class="ai-bubble ${m.typing ? 'ai-bubble--typing' : ''}" data-msg="${i}">${m.typing ? '<i></i><i></i><i></i>' : ''}</div>
+        ${m.photo ? `<img class="ai-msg__photo" src="${m.photo}" alt="Фото від гостя">` : ''}
+        ${m.photo && !m.text ? '' : `<div class="ai-bubble ${m.typing ? 'ai-bubble--typing' : ''}" data-msg="${i}">${m.typing ? '<i></i><i></i><i></i>' : ''}</div>`}
       </div>
       ${tags(m, i)}`).join('');
     // текст вставляємо окремо, щоб повідомлення ніколи не читалося як розмітка
@@ -523,12 +524,15 @@ const AiChat = {
      тап по фото чи назві — картка товару. Ще пропозиція: пунктирна рамка й «Чернетка…» в заголовку;
      кнопка «Додати в кошик · сума» рахує лише те, що беремо (off — «не беру»). badge — необовʼязкова позначка.
      live — остання чернетка: її можна правити; старіші — як були на той момент.
-     m: { title, badge, rows: [{ id, qty, off, mark }], rowAction, addLabel, inCart } */
+     recipe — шапка рецепта (час · порції, кроки згорнуті); offLabel — як зветься «не беру» («вже маю»);
+     у рядку offNote — своя позначка сірого рядка («є в кошику»), hint — позначка («замість свіжого»).
+     m: { title, badge, recipe: { meta, steps, stepsLabel }, offLabel, rows: [{ id, qty, off, offNote, hint, mark }], rowAction, addLabel, inCart } */
   listCard(m, i, live) {
     const edit = live && !m.inCart;
     const rowsShown = m.inCart ? m.rows.filter(r => !r.off) : m.rows; // у кошику — лише те, що взяли
     const on = m.rows.filter(r => !r.off);
     const sum = rows => rows.reduce((s, r) => s + DATA.products[r.id].price * (r.qty || 1), 0);
+    const cap1 = s => s.charAt(0).toLocaleUpperCase('uk-UA') + s.slice(1);
     // компактний рядок: фото · назва · «к-сть · ціна» · степер − N шт + · кнопка заміни (іконка з проду, 32×32).
     // На 1 шт мінус = кошик (як у кошику), але товар не видаляє, а позначає «не беру»;
     // сірий рядок повертається кнопкою «+».
@@ -539,13 +543,13 @@ const AiChat = {
           <img class="ai-list__img" src="${p.image}" alt="" data-go="pdp" data-param="${r.id}">
           <div class="ai-list__info" data-go="pdp" data-param="${r.id}">
             <span class="ai-list__name">${p.shortName || p.name}</span>
-            <span class="ai-list__meta">${r.off ? '<span>не беру</span>' : `${edit ? '' : `<span>${q} шт ·</span>`}<b>${UI.money(p.price * q)}</b>`}${p.oldPrice && !r.off ? `<s>${UI.money(p.oldPrice * q)}</s>` : ''}${r.mark === 'new' ? '<em>нове</em>' : ''}</span>
+            <span class="ai-list__meta">${r.off ? `<span>${r.offNote || m.offLabel || 'не беру'}</span>` : `${edit ? '' : `<span>${q} шт ·</span>`}<b>${UI.money(p.price * q)}</b>`}${p.oldPrice && !r.off ? `<s>${UI.money(p.oldPrice * q)}</s>` : ''}${r.mark === 'new' ? '<em>нове</em>' : ''}${r.hint && !r.off ? `<span class="ai-list__hint">${r.hint}</span>` : ''}</span>
           </div>
           ${edit && m.rowAction && !r.off ? `<button class="ai-list__swap" type="button" data-row-act="${r.id}" data-list-msg="${i}" aria-label="${m.rowAction}: ${p.name}"><img src="assets/icons/change.svg" alt=""></button>` : ''}
           ${edit ? (r.off ? `
             <button class="ai-list__back" type="button" data-list-on="${r.id}" data-list-msg="${i}" aria-label="Повернути: ${p.name}"><img src="assets/icons/plus.svg" alt=""></button>` : `
             <span class="ai-stepper">
-              <button type="button" data-list-qty="-1" data-id="${r.id}" data-list-msg="${i}" aria-label="${q <= 1 ? 'Не брати' : 'Менше'}">${q <= 1 ? '<img src="assets/icons/trash-white.svg" alt="">' : '−'}</button>
+              <button type="button" data-list-qty="-1" data-id="${r.id}" data-list-msg="${i}" aria-label="${q <= 1 ? cap1(m.offLabel || 'не брати') : 'Менше'}">${q <= 1 ? '<img src="assets/icons/trash-white.svg" alt="">' : '−'}</button>
               <output>${q} шт</output>
               <button type="button" data-list-qty="1" data-id="${r.id}" data-list-msg="${i}" aria-label="Більше">+</button>
             </span>`) : ''}
@@ -557,6 +561,11 @@ const AiChat = {
     return `
       <div class="ai-list${m.inCart ? ' is-in-cart' : ''}" data-msg="${i}">
         <div class="ai-list__head"><span>${m.title}</span>${m.badge && !m.inCart ? `<span class="ai-list__badge">${m.badge}</span>` : ''}</div>
+        ${m.recipe ? `<div class="ai-recipe">
+          <span class="ai-recipe__meta">${m.recipe.meta}</span>
+          <details class="ai-recipe__steps"><summary>${m.recipe.stepsLabel}</summary><ol>${m.recipe.steps.map(x => `<li>${x}</li>`).join('')}</ol></details>
+          ${m.recipe.url ? `<a class="ai-recipe__link" href="${m.recipe.url}" target="_blank" rel="noopener">${m.recipe.urlLabel || 'Повний рецепт'}</a>` : ''}
+        </div>` : ''}
         ${rowsShown.map(row).join('')}
         <div class="ai-list__total"><span>${m.inCart ? 'У кошику' : on.length === m.rows.length ? 'Разом' : `Разом за ${on.length} з ${m.rows.length}`}</span><b>${UI.money(sum(on))}</b></div>
         ${edit && m.addLabel !== null ? `<button class="ai-list__add" type="button" data-list-add="${i}" ${on.length ? '' : 'disabled'}>${addText}</button>` : ''}
