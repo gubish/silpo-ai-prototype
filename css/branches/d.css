@@ -184,7 +184,7 @@
 .ai-list__meta b { font-weight: var(--fw-semibold); color: var(--ink-100); }
 .ai-list__meta s { color: rgba(32, 33, 36, 0.45); }
 .ai-list__meta em { font-style: normal; font-weight: var(--fw-semibold); color: var(--blue-500); }
-.ai-list__hint { color: var(--black-56, rgba(32, 33, 36, 0.56)); font-style: italic; }
+.ai-list__hint { font-size: 12px; line-height: 16px; color: var(--black-56, rgba(32, 33, 36, 0.56)); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* шапка рецепта в чернетці: час · порції, кроки згорнуті */
 .ai-recipe { padding: 0 var(--space-12) var(--space-8); font-size: 13px; line-height: 18px; color: var(--black-72); }
 .ai-recipe__meta { display: block; margin-bottom: var(--space-4); }

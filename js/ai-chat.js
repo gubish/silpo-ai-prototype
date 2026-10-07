@@ -525,7 +525,7 @@ const AiChat = {
      кнопка «Додати в кошик · сума» рахує лише те, що беремо (off — «не беру»). badge — необовʼязкова позначка.
      live — остання чернетка: її можна правити; старіші — як були на той момент.
      recipe — шапка рецепта (час · порції, кроки згорнуті); offLabel — як зветься «не беру» («вже маю»);
-     у рядку offNote — своя позначка сірого рядка («є в кошику»), hint — позначка («замість свіжого»).
+     у рядку offNote — своя позначка сірого рядка («є в кошику»), lock — сірий рядок без «+» (напр. алерген: критичне обмеження); hint — позначка окремим рядком під ціною («замість свіжого», «щотижня»), щоб не конкурувала зі знижкою.
      m: { title, badge, recipe: { meta, steps, stepsLabel }, offLabel, rows: [{ id, qty, off, offNote, hint, mark }], rowAction, addLabel, inCart } */
   listCard(m, i, live) {
     const edit = live && !m.inCart;
@@ -543,10 +543,11 @@ const AiChat = {
           <img class="ai-list__img" src="${p.image}" alt="" data-go="pdp" data-param="${r.id}">
           <div class="ai-list__info" data-go="pdp" data-param="${r.id}">
             <span class="ai-list__name">${p.shortName || p.name}</span>
-            <span class="ai-list__meta">${r.off ? `<span>${r.offNote || m.offLabel || 'не беру'}</span>` : `${edit ? '' : `<span>${q} шт ·</span>`}<b>${UI.money(p.price * q)}</b>`}${p.oldPrice && !r.off ? `<s>${UI.money(p.oldPrice * q)}</s>` : ''}${r.mark === 'new' ? '<em>нове</em>' : ''}${r.hint && !r.off ? `<span class="ai-list__hint">${r.hint}</span>` : ''}</span>
+            <span class="ai-list__meta">${r.off ? `<span>${r.offNote || m.offLabel || 'не беру'}</span>` : `${edit ? '' : `<span>${q} шт ·</span>`}<b>${UI.money(p.price * q)}</b>`}${p.oldPrice && !r.off ? `<s>${UI.money(p.oldPrice * q)}</s>` : ''}${r.mark === 'new' ? '<em>нове</em>' : ''}</span>
+            ${r.hint && !r.off ? `<span class="ai-list__hint">${r.hint}</span>` : ''}
           </div>
           ${edit && m.rowAction && !r.off ? `<button class="ai-list__swap" type="button" data-row-act="${r.id}" data-list-msg="${i}" aria-label="${m.rowAction}: ${p.name}"><img src="assets/icons/change.svg" alt=""></button>` : ''}
-          ${edit ? (r.off ? `
+          ${edit && !(r.off && r.lock) ? (r.off ? `
             <button class="ai-list__back" type="button" data-list-on="${r.id}" data-list-msg="${i}" aria-label="Повернути: ${p.name}"><img src="assets/icons/plus.svg" alt=""></button>` : `
             <span class="ai-stepper">
               <button type="button" data-list-qty="-1" data-id="${r.id}" data-list-msg="${i}" aria-label="${q <= 1 ? cap1(m.offLabel || 'не брати') : 'Менше'}">${q <= 1 ? '<img src="assets/icons/trash-white.svg" alt="">' : '−'}</button>

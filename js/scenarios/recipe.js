@@ -23,6 +23,7 @@
   /* ---------- Демо-інгредієнти ---------- */
   const DEMO = {
     spaghetti:   { name: 'Спагеті з твердих сортів пшениці, 500 г', short: 'спагеті', price: 64, weight: '500 г' },
+    spaghettiGf: { name: 'Спагеті без глютену, 400 г', short: 'спагеті без глютену', price: 98, weight: '400 г' },
     tomatoesCan: { name: 'Томати у власному соку, 400 г', short: 'томати у власному соку', price: 58, weight: '400 г' },
     anchovies:   { name: 'Анчоуси в олії, 50 г', short: 'анчоуси', price: 119, weight: '50 г' },
     garlic:      { name: 'Часник, 100 г', short: 'часник', price: 29, weight: '100 г' },
@@ -97,6 +98,33 @@
   };
   const DINNER = ['pasta', 'salad'];
 
+  /* ---------- Заміна інгредієнта: як вона змінить страву ----------
+     alt — чим замінити і що станеться зі стравою (підпис на картці). Пропонуємо лише те, що пасує саме
+     до цієї страви. without — доброї заміни немає: чесно, і що зробити без нього (опційно — більше іншого). */
+  const SWAP = {
+    pasta: {
+      spaghetti:   { alt: [{ id: 'spaghettiGf', note: 'Без глютену — варити на 2 хв менше' }] },
+      tomatoesCan: { alt: [{ id: 'tomatoes', note: 'Свіжі помідори — соус легший, тушкувати довше' }] },
+      anchovies:   { gen: 'анчоусів', without: 'Без анчоусів теж можна — соус буде менш солоний. Покладу більше каперсів.', more: 'capers' },
+      olives:      { gen: 'маслин', without: 'Маслини можна не класти — соус буде простіший, але теж смачний.' },
+      capers:      { gen: 'каперсів', without: 'Без каперсів соус менш пікантний — можна покласти більше маслин.', more: 'olives' },
+      parsley:     { gen: 'петрушки', without: 'Петрушка — лише для подачі, можна й без неї.' },
+      garlic:      { gen: 'часнику', without: 'Без часнику соус втратить аромат — краще лишити.' },
+    },
+    salad: {
+      blueCheese:  { alt: [{ id: 'cheese', note: 'Гауда — мʼякший смак, без пікантності' }] },
+      walnuts:     { alt: [{ id: 'pistachios', note: 'Фісташки солоні — у заправку менше солі' }] },
+      pears:       { alt: [{ id: 'appleGolden', note: 'Яблуко — кисліше й хрусткіше за грушу' }] },
+      rucola:      { gen: 'руколи', without: 'Руколу можна замінити листям салату — покладу більше, смак буде мʼякшим.', more: 'saladLeaves' },
+      saladLeaves: { gen: 'листя салату', without: 'Без листя салату — тоді більше руколи, буде гостріше.', more: 'rucola' },
+    },
+    sorbet: {
+      grapes:      { alt: [{ id: 'grapesRed', note: 'РедГлоб — менш солодкий, сорбет свіжіший' }] },
+      mint:        { gen: 'мʼяти', without: 'Мʼята — для свіжості, без неї теж смачно.' },
+      lime:        { gen: 'лайма', without: 'Без кислого соку сорбет вийде приторним — лайм краще лишити.' },
+    },
+  };
+
   const T = {
     opener: 'Що приготувати на вечерю?',
     other: 'Інший рецепт',
@@ -127,6 +155,8 @@
     shown: [],             // уже показані рецепти
     where: 'chat',         // chat | cart (вхід із кошика, чат поверх)
     inCart: false,
+    swaps: {},             // заміни гостя в цьому рецепті: інгредієнт → чим замінив (порції не гублять)
+    extra: {},             // «покладу більше X» замість прибраного інгредієнта
   });
   const taken = () => S.rows.filter(r => !r.off);
   const total = () => taken().reduce((s, r) => s + P(r.id).price * r.qty, 0);
@@ -140,6 +170,7 @@
     if (S.portionsSource === 'assumption' || !r.portions.includes(S.portions)) {
       S.portions = S.portionsSource === 'guest' ? [...r.portions].sort((a, b) => Math.abs(a - S.portions) - Math.abs(b - S.portions))[0] : r.portions[0];
     }
+    S.swaps = {}; S.extra = {}; // новий рецепт — нові заміни
     S.rows = r.rows.map(x => ({ id: x.id, qty: x.q[pIdx()], hint: x.hint || null,
       ...(Cart.items.has(x.id) ? { off: true, offNote: 'є в кошику' } : {}) }));
     if (!S.pantryHome) r.pantry.forEach(id => S.rows.push({ id, qty: 1, mark: 'new' }));
@@ -158,7 +189,7 @@
       title: r.title,
       recipe: { meta: `${r.time} хв · ${count(S.portions, PORT)}`, steps: r.steps, stepsLabel: `Як готувати · ${count(r.steps.length, STEPS)}`,
                 url: r.url, urlLabel: 'Повний рецепт на silpo.ua' },
-      rows: S.rows, offLabel: 'вже маю',
+      rows: S.rows, offLabel: 'вже маю', rowAction: 'Замінити',
       addLabel: 'Додати в кошик', inCart: S.inCart,
     };
   }
@@ -216,7 +247,7 @@
     if (!R[S.recipe].portions.includes(n)) return { text: `Цей рецепт — на ${R[S.recipe].portions.join(' або ')} порції. ${T.portionsAsk}`, chips: portionChips() };
     S.portions = n; S.portionsSource = 'guest';
     const r = R[S.recipe];
-    S.rows.forEach(row => { const x = r.rows.find(y => y.id === row.id); if (x) row.qty = x.q[pIdx()]; });
+    S.rows.forEach(row => { const x = r.rows.find(y => y.id === row.id || S.swaps[y.id] === row.id); if (x) row.qty = x.q[pIdx()] + (S.extra[row.id] || 0); });
     return {
       text: `Перерахував на ${count(n, PORT)}. Решта без змін — тепер ${money(total())}:`,
       list: draft(), context: ctx(),
@@ -234,6 +265,20 @@
       text: `Додав ${list(add)}. Тепер ${money(total())}:`,
       list: draft(), context: ctx(),
       chips: S.where === 'cart' ? [backNode()] : nextChips(),
+    };
+  }
+
+  /** Який інгредієнт рецепта стоїть у рядку (з урахуванням замін) */
+  const orig = id => Object.keys(S.swaps).find(k => S.swaps[k] === id) || id;
+  /** Без інгредієнта: рядок «не беру»; more — чого покласти більше замість нього */
+  function without(id, more, gen) {
+    const r = S.rows.find(x => x.id === id);
+    if (r) { r.off = true; r.offNote = 'не кладу'; }
+    const m = more && S.rows.find(x => x.id === more && !x.off);
+    if (m) { m.qty += 1; m.mark = 'new'; S.extra[more] = (S.extra[more] || 0) + 1; } // порції не гублять «більше»
+    return {
+      text: `Гаразд, без ${gen}${m ? `, а ${nameOf(more)} — на одну більше` : ''}. Тепер ${money(total())}:`,
+      list: draft(), context: ctx(),
     };
   }
 
@@ -337,6 +382,18 @@
     removeCondition,
     listAdd,
     cartRecipe: cartEntry,
+    // заміна інгредієнта — спільна (Scenarios.swapOffer), але варіанти й підписи — під страву
+    rowAction: id => (S && !S.inCart ? Scenarios.swapOffer({
+      scenario: 'recipe', rows: S.rows, id, list: draft,
+      alts: x => ((SWAP[S.recipe] || {})[orig(x)] || {}).alt || [],
+      none: (x, step) => {
+        const w = (SWAP[S.recipe] || {})[orig(x)];
+        if (!w || !w.without) return null;
+        return { text: w.without, chips: [step(`Без ${w.gen}`, () => without(x, w.more, w.gen))] };
+      },
+      onSwap: (from, to) => { const o = orig(from); if (to) S.swaps[o] = to; else delete S.swaps[o]; },
+    }) : null),
+    cardAction: id => Scenarios.swapCard(id),
     // жовтий чіп «Що з цього приготувати?» — лише коли в кошику є інгредієнт якогось рецепта
     cartMatch: () => Object.values(R).some(r => r.rows.some(x => Cart.items.has(x.id))),
   });

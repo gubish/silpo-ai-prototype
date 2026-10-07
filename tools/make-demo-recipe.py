@@ -8,6 +8,7 @@ OUT = pathlib.Path(__file__).resolve().parent.parent / 'assets' / 'images' / 'pr
 # Упаковка: (форма, рядок 1, рядок 2, колір упаковки, етикетка, текст)
 PACKS = {
     'spaghetti':  ('box', 'Спагеті', '500 г', '#1f4fa8', '#ffffff', '#1f4fa8'),
+    'spaghettiGf': ('box', 'Спагеті', 'без глютену', '#2e8b57', '#ffffff', '#1f6b42'),
     'salt':       ('box', 'Сіль', 'кухонна', '#5b6b7a', '#ffffff', '#33414d'),
     'tomatoesCan': ('can', 'Томати', 'у власному соку', '#c0392b', '#fff3e6', '#8a2318'),
     'anchovies':  ('tin', 'Анчоуси', 'в олії', '#2c5f7c', '#eaf3f8', '#1d3f52'),

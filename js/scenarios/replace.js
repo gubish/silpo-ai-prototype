@@ -1,21 +1,19 @@
 /* =====================================================================
-   СЦЕНАРІЙ «Заміна товару в кошику» (гілка Chats, js/branches/d.js).
-   За правилами docs/mg-dialog-rules.md. Ситуація: МГ уже зібрав кошик (як — поки не важливо),
-   гість загалом згоден, але один товар хоче замінити — не збираючи все заново.
-   • «Зібрати кошик» → чернетка списку (ще НЕ в кошику): рядки товар · к-сть · ціна, сума,
-     у кожному рядку «Замінити». Під нею — «Додати все в кошик» / «Замінити товар».
-   • «Замінити» в рядку (або «заміни майонез» словами) → одразу 3 варіанти з підписом, чим
-     відрізняються від поточного; під ними одне питання «Чим не підійшов X?» з причинами-чіпсами.
-     Причина звужує варіанти; «без яєць» — критичне обмеження: діє до кінця розмови.
-   • «Замінити на Y» → «✓ Замінено в чернетці: X → Y · Скасувати» і оновлена чернетка,
-     де новий рядок позначено «нове»; решта товарів і кількості без змін.
-   • Немає чим замінити → чесно, пропозиція прибрати рядок. Незрозуміло що («заміни фрукти»)
-     → одне питання з товарами-чіпсами.
-   • Чернетка — компактні рядки: «− N шт +» і кнопка заміни; мінус на 1 шт (кошик) = «не беру»
-     (рядок сіріє, повертається «+»). Кнопка «Додати в кошик · сума» рахує лише те, що беремо.
-   • «Додати в кошик» → «✓ Додано в кошик · Скасувати» і один крок — оформити.
-   Демо: 3 майонези (DEMO нижче, намальовані баночки — tools/make-demo-mayo.py).
-   Тексти — T, заміни — ALT, ключові слова товарів — WORDS.
+   СЦЕНАРІЙ «Передбач моє замовлення» (id 'predict'; гілка Chats, працює і в C). Обʼєднаний 2026-10-07
+   із «Заміною товару в кошику»: старт — з «Передбач», заміна — глибока, із «Заміни». За правилами
+   docs/mg-dialog-rules.md.
+   • «Збери, як зазвичай» → одразу чернетка з історії замовлень (HISTORY): лише те, що «пора»
+     (з останньої покупки минуло стільки, скільки гість зазвичай чекає), у рядку — джерело
+     («щотижня», «раз на 2 тижні»), кількість — звичайна. Що ще рано — одним реченням.
+   • Припущення «на тиждень, як зазвичай» (× → На тиждень / На 2 тижні): перерахунок не губить
+     «не беру», заміни й додане. «Що ще я брав?» — карусель рідших покупок з «Додати» в чернетку.
+   • Заміна рядка (іконка або «заміни майонез») → 2–3 варіанти з підписом, чим відрізняються, і одне
+     питання «Чому міняємо X?» з причинами-чіпсами: Дорогий / Хочу легший / Без яєць / Інша марка.
+     «Без яєць» — критичне обмеження до кінця розмови. «Дорого» → далі «Де ще зекономити?».
+   • Заміна в справжньому кошику: іконка в рядку кошика й жовті чіпси над ним (js/scenarios/engine.js)
+     → чат поверх кошика, «✓ Замінено в кошику · Скасувати» → «Повернутись у кошик».
+   • «Додати в кошик» → «✓ Додано · Скасувати» і спільний наступний крок (Scenarios.nextStep).
+   Демо-майонези — tools/make-demo-mayo.py. Частина товарів історії — зі сценарію «Список із фото».
    ===================================================================== */
 
 (() => {
@@ -59,6 +57,9 @@
     mayoHome:  [{ id: 'mayoLight', tags: ['light'], same: true, note: 'Легший: 30% жиру' }, { id: 'mayoVegan', tags: ['noEgg'], same: true, note: 'Без яєць — пісний' }, { id: 'hellmanns', tags: ['brand'], same: true, note: 'Hellmann’s Original 73%' }],
     mayoLight: [{ id: 'mayoHome', tags: ['brand'], same: true, note: 'Класичний, 72%' }, { id: 'mayoVegan', tags: ['noEgg'], same: true, note: 'Без яєць — пісний' }, { id: 'hellmanns', tags: ['brand'], same: true, note: 'Hellmann’s Original 73%' }],
     mayoVegan: [{ id: 'mayoHome', tags: ['brand'], same: true, note: 'Класичний, 72%, з яйцями' }, { id: 'mayoLight', tags: ['light'], same: true, note: 'Легкий, 30%, з яйцями' }],
+    milk:    [{ id: 'milk32', tags: [], note: 'Жирніше: 3,2% замість 2,5%' }],
+    milk32:  [{ id: 'milk', tags: ['light'], same: true, note: 'Легше: 2,5% замість 3,2%' }],
+    cottage: [{ id: 'cheese', tags: ['brand'], note: 'Твердий — до бутербродів' }, { id: 'processed', tags: ['cheaper'], note: 'Плавлений — на бутерброди' }],
     appleGolden: [
       { id: 'applesGreen', tags: ['brand'], note: 'Зелені — кисліші й хрусткіші' },
       { id: 'pears',       tags: ['brand'], note: 'Груші — солодші й мʼякші' },
@@ -75,14 +76,17 @@
     appleGolden: ['яблук', 'голден'],
     tomatoes: ['помідор', 'томат'],
     cabbage: ['капуст'],
+    milk: ['молок'], milk32: ['молок'], bread: ['хліб', 'батон'], eggs: ['яй'], cottage: ['сир'], coffee: ['кав'],
+    pistachios: ['фісташ'], oliveOil: ['олі'], grapesRed: ['виноград'],
   };
   const GROUPS = { фрукт: ['banana', 'appleGolden'], овоч: ['tomatoes', 'cabbage'] };
 
   const T = {
-    opener: 'Зібрати кошик',
-    draftTitle: 'Чернетка кошика',
-    built: (n, note) => `Зібрав кошик на кілька днів — ${n}${note}. Перевір, що все підходить:`,
-    ask: 'Кількість змінюй у рядку, непотрібне прибери, інше — заміни. Або просто напиши, що не так.',
+    opener: 'Збери, як зазвичай',
+    draftTitle: 'Чернетка: звичайне замовлення',
+    more: 'Що ще я брав?',
+    howOften: { 7: 'щотижня', 14: 'раз на 2 тижні', 30: 'раз на місяць' },
+    ask: 'Що не так — прибери, заміни або просто напиши.',
     addAll: 'Додати все в кошик',
     replaceSome: 'Замінити товар',
     whichOne: 'Що саме замінити?',
@@ -102,48 +106,93 @@
     water15light: ['слабогазована «Моршинська»', 'слабогазовану «Моршинську»'], water075: ['«Моршинська» 0,75 л'],
     applesGreen: ['зелені яблука'], pears: ['груші'],
   };
-  const nameOf = id => DEMO[id] ? DEMO[id].short : (NAMES[id] || [P(id).name])[0];
+  const lcFirst = t => t.charAt(0).toLocaleLowerCase('uk-UA') + t.slice(1);
+  const nameOf = id => DEMO[id] ? DEMO[id].short : (NAMES[id] || [lcFirst(P(id).shortName || P(id).name)])[0];
   const accOf = id => DEMO[id] ? DEMO[id].short : (NAMES[id] || [])[1] || nameOf(id);
   const count = (n, forms) => `${n} ${aiPlural(n, forms)}`;
   const GOODS = ['товар', 'товари', 'товарів'];
+  const DAYS = ['день', 'дні', 'днів'];
+  const WEEKSW = ['тиждень', 'тижні', 'тижнів'];
+  const ago = d => (d % 7 === 0 && d >= 14 ? `${count(d / 7, WEEKSW)} тому` : `${count(d, DAYS)} тому`);
+  const ID = 'predict';
+
+  /* ---------- Історія замовлень гостя (умовна: 6 тижнів) ----------
+     every — як часто бере (днів), qty — звичайна кількість, last — днів від останньої покупки */
+  const WEEKS = 6;
+  const HISTORY = [
+    { id: 'milk',      every: 7,  qty: 2, last: 7 },
+    { id: 'bread',     every: 7,  qty: 1, last: 7 },
+    { id: 'banana',    every: 7,  qty: 1, last: 7 },
+    { id: 'water15',   every: 7,  qty: 2, last: 7 },
+    { id: 'eggs',      every: 14, qty: 1, last: 13 },
+    { id: 'cottage',   every: 14, qty: 1, last: 6 },
+    { id: 'hellmanns', every: 30, qty: 1, last: 27 },
+    { id: 'coffee',    every: 30, qty: 1, last: 9 },
+  ];
+  // брав рідко — не «передбачаємо», але показуємо на «Що ще я брав?»
+  const RARE = [{ id: 'pistachios', last: 35 }, { id: 'oliveOil', last: 21 }, { id: 'grapesRed', last: 28 }];
+  const history = () => HISTORY.filter(h => P(h.id));
+  /** «Пора» за період: до наступної звичайної покупки лишилось не більше днів, ніж у періоді */
+  const due = (h, days) => h.every - h.last <= days;
+  const qtyFor = (h, days) => h.qty * Math.max(1, Math.floor(days / h.every));
 
   /* ---------- Стан ---------- */
   let S = null;
   const fresh = () => ({
-    draft: ['tomatoes', 'cabbage', 'banana', 'appleGolden', 'water15', 'hellmanns'].map(id => ({ id, qty: 1 })),
+    draft: [],         // рядки чернетки: { id, qty, hint, off, offNote, added } — спільні з чатом
+    swaps: {},         // заміни гостя: id з історії → на що замінив (перерахунок їх не губить)
     target: null,      // що зараз замінюємо
     reason: null,      // чому (cheaper | light | noEgg | brand)
     noEgg: false,      // критичне обмеження — діє до кінця розмови
     marks: {},         // id → 'new' у чернетці
     where: 'draft',    // що міняємо: чернетку в чаті чи справжній кошик (вхід з кошика)
-    period: 'days',    // припущення: на скільки збираємо
+    period: 'week',    // припущення: на скільки збираємо
     periodSource: 'assumption',
     inCart: false,     // чернетку вже додано в кошик
   });
   const taken = () => S.draft.filter(r => !r.off);
   const total = () => taken().reduce((s, r) => s + P(r.id).price * r.qty, 0);
 
-  const node = (label, run) => ({ label, scenario: 'replace', replace: true, run });
+  const node = (label, run) => ({ label, scenario: ID, replace: true, run });
 
   /* ---------- Припущення «на скільки» (рядок контексту, «×» — змінити) ----------
      Кількості в чернетці під період; позиції (і зроблені заміни, «не беру») не змінюються. */
   const PERIODS = {
-    days: { label: 'на кілька днів', chip: 'На кілька днів', qty: [1, 1, 1, 1, 1, 1] },
-    week: { label: 'на тиждень', chip: 'На тиждень', qty: [2, 1, 2, 2, 3, 1] },
+    week: { days: 7,  label: 'на тиждень, як зазвичай', chip: 'На тиждень' },
+    two:  { days: 14, label: 'на 2 тижні', chip: 'На 2 тижні' },
   };
   function periodCtx() {
     const p = PERIODS[S.period];
-    return shown([{ type: 'period', key: 'period', label: S.periodSource === 'assumption' ? `${p.label}, припущення` : p.label, source: S.periodSource }]);
+    return shown([{ type: 'period', key: 'period', label: p.label, source: S.periodSource }]);
+  }
+  /** Рядки чернетки з історії під період; «не беру», заміни й додане гостем лишаються */
+  function build(days) {
+    const old = new Map(S.draft.map(r => [r.id, r]));
+    const rows = history().filter(h => due(h, days)).map(h => {
+      const id = S.swaps[h.id] || h.id, o = old.get(id);
+      return { id, qty: qtyFor(h, days), hint: S.swaps[h.id] ? null : T.howOften[h.every],
+        ...(o && o.off ? { off: true, offNote: o.offNote } : {}),
+        ...(Cart.items.has(id) ? { off: true, offNote: 'є в кошику' } : {}) };
+    });
+    S.draft.filter(r => r.added && !rows.some(x => x.id === r.id)).forEach(r => rows.push(r));
+    S.draft = rows;
+  }
+  /** Що з регулярного ще рано брати — одне речення поради */
+  function notYet(days) {
+    const h = history().filter(x => !due(x, days)).sort((a, b) => (a.every - a.last) - (b.every - b.last))[0];
+    return h ? `${cap(nameOf(h.id))} не ставлю: брав ${ago(h.last)}, а береш ${T.howOften[h.every]}.` : '';
   }
   /** Рядок контексту без того, що гість щойно сказав дослівно (S.just) — це видно в його репліці */
   const shown = ctx => ctx.filter(c => !(S.just || []).includes(c.key));
   function setPeriod(key) {
     S.period = key; S.periodSource = 'guest'; S.just = ['period'];
-    S.draft.forEach((r, i) => { r.qty = PERIODS[key].qty[i] || 1; });
+    build(PERIODS[key].days);
     return {
-      text: key === 'week' ? 'Перерахував на тиждень: більше овочів, фруктів і води. Решта без змін:' : 'Перерахував на кілька днів, по одному. Решта без змін:',
+      text: key === 'two' ? `На 2 тижні: щотижневого — удвічі, плюс те, що буде пора за цей час. Тепер ${count(taken().length, GOODS)} на ${money(total())}:`
+        : `На тиждень, як зазвичай: ${count(taken().length, GOODS)} на ${money(total())}:`,
       list: draftList(), context: periodCtx(),
-      chips: [node(T.replaceSome, askWhich)],
+      after: notYet(PERIODS[key].days) || null,
+      chips: [node(T.more, more)],
     };
   }
   const periodChips = () => Object.entries(PERIODS).map(([k, p]) => node(p.chip, () => setPeriod(k)));
@@ -165,15 +214,39 @@
   function start() {
     S = fresh();
     S.just = [];
-    // до дешевшої доставки близько — кажемо суму одразу і даємо суміжний крок
+    if (!history().length) {
+      // немає історії — чесно, без вигаданого «звичайного» кошика
+      return {
+        text: 'Чесно: замовлень у тебе ще не було, тож передбачати нема з чого. Можу зібрати кошик інакше:',
+        chips: ['photo-list', 'recipe', 'event'].map(id => Scenarios.all[id] && Scenarios.all[id].opener).filter(Boolean),
+      };
+    }
+    build(PERIODS.week.days);
+    const inCartRows = S.draft.filter(r => r.offNote === 'є в кошику');
+    // до дешевшої доставки близько — кажемо суму одразу (стейкхолдер просив) і даємо чіп
     const nd = nextDelivery(), near = nd && nd.left <= 300;
     return {
-      text: T.built(`${count(S.draft.length, GOODS)} на ${money(total())}`, near ? `, до доставки за ${money(nd.price)} ще ${money(nd.left)}` : ''),
+      text: `Зібрав, як ти зазвичай береш, — з твоїх замовлень за ${count(WEEKS, WEEKSW)}: ${count(taken().length, GOODS)} на ${money(total())}`
+        + (near ? `, до доставки за ${money(nd.price)} ще ${money(nd.left)}` : '') + '.'
+        + (inCartRows.length ? ` ${cap(inCartRows.map(r => nameOf(r.id)).join(', '))} вже в кошику — не рахую.` : ''),
       list: draftList(),
       context: periodCtx(),
-      after: T.ask,
-      chips: [near ? node('Як доставити дешевше?', deliveryTip) : node(T.replaceSome, askWhich)],
+      after: [notYet(PERIODS.week.days), T.ask].filter(Boolean).join(' '),
+      chips: [node(T.more, more), near ? node('Як доставити дешевше?', deliveryTip) : null].filter(Boolean),
     };
+  }
+
+  /** «Що ще я брав?» — рідші й ще не «пора» покупки; вибір одного з кількох → карусель, «Додати» в чернетку */
+  function more() {
+    const days = PERIODS[S.period].days;
+    const ids = [
+      ...history().filter(h => !due(h, days)).map(h => ({ id: h.id, note: `${cap(T.howOften[h.every])}, останній раз ${ago(h.last)}` })),
+      ...RARE.filter(x => P(x.id)).map(x => ({ id: x.id, note: `Брав один раз, ${ago(x.last)}` })),
+    ].filter(x => !S.draft.some(r => r.id === x.id) && !Cart.items.has(x.id)).slice(0, 4);
+    S.target = null;
+    if (!ids.length) return { text: 'Більше нічого — усе, що ти брав, уже в чернетці чи в кошику.' };
+    S.addMap = Object.fromEntries(ids.map(x => [x.id, true]));
+    return { text: 'Ось що ти брав рідше. Додам у чернетку, якщо треба:', items: ids.map(x => ({ ...x, noAdd: true, act: 'Додати' })) };
   }
 
   /* ---------- Справжній кошик (вхід — іконка заміни в рядку кошика або чіп МГ над ним) ----------
@@ -181,7 +254,7 @@
      «Скасувати» повертає як було, «Повернутись у кошик» закриває чат (кошик під ним). */
   const inCart = () => S.where === 'cart';
   const cartIds = () => [...Cart.items.keys()];
-  const backNode = () => ({ label: 'Повернутись у кошик', scenario: 'replace', replace: true, back: true, run: () => null });
+  const backNode = () => ({ label: 'Повернутись у кошик', scenario: ID, replace: true, back: true, run: () => null });
   /** Замінити ключ у Map кошика на тому ж місці */
   function swapInCart(from, to) {
     Cart.items = new Map([...Cart.items].map(([k, v]) => (k === from ? [to, v] : [k, v])));
@@ -236,7 +309,7 @@
       тут лише свої кроки: «Де ще зекономити?», доставка з «Додати» в чернетку, «Замінити ще щось» */
   function followUp() {
     return Scenarios.nextStep({
-      scenario: 'replace', total: poolTotal(),
+      scenario: ID, total: poolTotal(),
       save: S.priceMatters ? node('Де ще зекономити?', saveMore) : null,
       delivery: node('Як доставити дешевше?', deliveryTip),
       own: node(T.replaceMore, () => askWhich()),
@@ -290,7 +363,8 @@
     };
   }
   function addToDraft(id) {
-    S.draft.push({ id, qty: 1 }); S.marks[id] = 'new';
+    const h = history().find(x => x.id === id);
+    S.draft.push({ id, qty: 1, added: true, hint: h ? T.howOften[h.every] : 'брав один раз' }); S.marks[id] = 'new';
     return { text: `Додав у чернетку. Тепер ${count(taken().length, GOODS)} на ${money(total())}:`, list: draftList(), chips: [followUp().chip] };
   }
   /** Вхід з рядка кошика */
@@ -351,7 +425,8 @@
     return {
       text: reason ? `${lead}${alts.length === 1 ? 'є такий варіант' : `ось ${count(alts.length, ['варіант', 'варіанти', 'варіантів'])}`}:` : `Чим замінити ${accOf(id)} (${money(base)})? Ось варіанти:`,
       items, context: ctx,
-      after: reason ? `Мій вибір — ${nameOf(alts[0].id)}.` : T.whyNot(accOf(id)),
+      // причину питаємо, лише якщо є з чого вибирати; інакше питання без відповідей
+      after: reason ? `Мій вибір — ${nameOf(alts[0].id)}.` : reasons.length ? T.whyNot(accOf(id)) : null,
       chips: reason
         ? [...alts.slice(0, 2).map(a => node(`Замінити на ${accOf(a.id)}`, () => replace(id, a.id))), node(T.keep(accOf(id)), keep)]
         : [...reasons.slice(0, 3).map(r => node(T.reasons[r], () => reasonPick(id, r))), node(T.keep(accOf(id)), keep)],
@@ -376,6 +451,10 @@
     const row = S.draft.find(r => r.id === from);
     const was = total();
     row.id = to;
+    // перерахунок за періодом не губить заміну: памʼятаємо, що з історії на що замінено
+    const orig = Object.keys(S.swaps).find(k => S.swaps[k] === from) || from;
+    const prevSwap = S.swaps[orig], prevHint = row.hint;
+    S.swaps[orig] = to; row.hint = null;
     const prevMark = S.marks[from];
     delete S.marks[from]; S.marks[to] = 'new';
     S.target = null;
@@ -384,7 +463,8 @@
       confirm: {
         text: `Замінено в чернетці: ${nameOf(from)} → ${nameOf(to)}`,
         undo: () => {
-          row.id = from; delete S.marks[to]; if (prevMark) S.marks[from] = prevMark;
+          row.id = from; row.hint = prevHint; delete S.marks[to]; if (prevMark) S.marks[from] = prevMark;
+          if (prevSwap) S.swaps[orig] = prevSwap; else delete S.swaps[orig];
           return { text: `Скасував: повернув ${nameOf(from)}.`, list: draftList(), chips: [node(T.replaceSome, askWhich)] };
         },
       },
@@ -421,7 +501,7 @@
       },
       list: draftList(),
       // завдання виконано — один суміжний крок (Scenarios.nextStep), уже від справжнього кошика
-      ...(() => { const f = Scenarios.nextStep({ scenario: 'replace' });
+      ...(() => { const f = Scenarios.nextStep({ scenario: ID });
         return { text: `У кошику на ${money(Cart.total())}${f.note}.`, chips: [f.chip].filter(Boolean) }; })(),
     };
   }
@@ -453,11 +533,16 @@
         if (/замін/.test(t)) return node(t, () => askWhich());
       }
     }
-    if (S && last && last.replace) {
-      if (/тиждень|7 днів|сім днів/.test(t)) return node(t, () => setPeriod('week'));
-      if (/кілька днів|пару днів|2-3 дні/.test(t)) return node(t, () => setPeriod('days'));
+    if (S && last && last.replace && !S.inCart) {
+      if (/2 тижн|два тижн|двох тижн|14 дн/.test(t)) return node(t, () => setPeriod('two'));
+      if (/тиждень|як зазвичай|7 днів/.test(t)) return node(t, () => setPeriod('week'));
+      if (/що ще|ще щось|рідше/.test(t)) return node(t, more);
+      if (/додай|візьми/.test(t)) {
+        const ids = [...history().map(h => h.id), ...RARE.map(x => x.id)].filter(id => (WORDS[id] || []).some(w => t.includes(w)) && !S.draft.some(r => r.id === id && !r.off));
+        if (ids.length === 1) return node(t, () => addToDraft(ids[0]));
+      }
     }
-    if (/збери кошик|зібрати кошик|набери кошик/.test(t)) return node(t, start);
+    if (/збери кошик|зібрати кошик|набери кошик|як зазвичай|звичайн|передбач|як завжди|як минулого/.test(t)) return node(t, start);
     return null;
   }
 
@@ -496,7 +581,7 @@
   }
 
   Scenarios.define({
-    id: 'replace',
+    id: ID,
     opener: node(T.opener, start),
     route,
     rowAction,

@@ -27,10 +27,9 @@
         soon: 'скоро',
         list: [
           { id: 'wine', label: 'Вибір товару з уточненням: вино' },
-          { id: 'replace', label: 'Заміна товару в кошику' },
+          { id: 'predict', label: '«Передбач моє замовлення» і заміна' },
           { id: 'recipe', label: 'Рецепти й інгредієнти' },
           { id: 'photo-list', label: 'Список покупок із фото' },
-          { id: 'predict', label: '«Передбач моє замовлення»' },
           { id: 'event', label: 'Кошик під подію' },
           { id: 'availability', label: 'Наявність і питання про товар' },
           { id: 'diet', label: 'Раціон і КБЖУ' },

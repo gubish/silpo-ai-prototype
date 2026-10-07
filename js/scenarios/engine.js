@@ -109,6 +109,90 @@ const Scenarios = {
     const sum = rows.reduce((t, r) => t + DATA.products[r.id].price * r.qty, 0);
     return { text: `${lead} Ось набір на ${money(sum)} — цього вистачить:`, list, chips: opts.back ? [opts.back] : [] };
   }
+  /* ---------- Заміна рядка чернетки — спільна для сценаріїв без своєї логіки заміни ----------
+     (правило «Форма результату»: «Замінити» в рядку → карусель варіантів з «Замінити»; обраний
+     повертається в чернетку з «нове», кількість і решта рядків без змін; «Скасувати» повертає як було).
+     ALTS — чим можна замінити товар і чим варіант відрізняється (note). Немає варіантів — чесно
+     і «Не брати». Сценарій підключає: rowAction → Scenarios.swapOffer(...), cardAction → Scenarios.swapCard(id). */
+  const ALTS = {
+    milk:        [{ id: 'milk32', note: 'Жирніше: 3,2% замість 2,5%' }],
+    milk32:      [{ id: 'milk', note: 'Легше: 2,5% замість 3,2%' }],
+    water15:     [{ id: 'water15light', note: 'Та сама вода, слабогазована' }],
+    water15light:[{ id: 'water15', note: 'Та сама вода, негазована' }],
+    cheese:      [{ id: 'blueCheese', note: 'З блакитною пліснявою — пікантніше' }, { id: 'processed', note: 'Плавлений — мʼякший' }],
+    blueCheese:  [{ id: 'cheese', note: 'Твердий Гауда — мʼякший смак' }],
+    cottage:     [{ id: 'cheese', note: 'Твердий — до бутербродів' }, { id: 'processed', note: 'Плавлений — на бутерброди' }],
+    processed:   [{ id: 'cheese', note: 'Твердий Гауда' }, { id: 'cottage', note: 'Кисломолочний — до сирників' }],
+    grapesRed:   [{ id: 'grapes', note: 'Фіолетовий — солодший' }],
+    grapes:      [{ id: 'grapesRed', note: 'РедГлоб — крупніший' }],
+    pistachios:  [{ id: 'walnuts', note: 'Волоські горіхи — без солі' }],
+    walnuts:     [{ id: 'pistachios', note: 'Фісташки — смажені, солоні' }],
+    appleGolden: [{ id: 'applesGreen', note: 'Зелені — кисліші й хрусткіші' }, { id: 'pears', note: 'Груші — солодші' }],
+    marshmallow: [{ id: 'bakoma', note: 'Рослинний десерт — без молока' }],
+    bakoma:      [{ id: 'marshmallow', note: 'Маршмелоу — легше' }],
+    hellmanns:   [{ id: 'mayoLight', note: 'Легкий, 30% жиру' }, { id: 'mayoHome', note: 'Класичний, 72%' }],
+  };
+  const lcFirst = t => t.charAt(0).toLocaleLowerCase('uk-UA') + t.slice(1);
+  const short = id => lcFirst(DATA.products[id].shortName || DATA.products[id].name);
+  let swap = null; // що зараз замінюємо: { scenario, rows, from, list, allow }
+  /** opts: { scenario, rows, id, list: () => чернетка для відповіді, allow: id => можна пропонувати (напр. без алергенів),
+             onSwap: (from, to|null) => сценарій памʼятає заміну, щоб перерахунок чернетки її не губив,
+             alts: id => свої варіанти [{ id, note }] (напр. для рецепта: як заміна змінить страву),
+             none: (id, step) => своя відповідь, коли варіантів немає ({ text, chips }) або null } */
+  Scenarios.swapOffer = function (opts) {
+    const flag = String(opts.scenario).replace(/-(\w)/g, (_, c) => c.toUpperCase());
+    const step = (label, run) => ({ label, scenario: opts.scenario, [flag]: true, run });
+    const from = opts.id;
+    return step(`Заміни ${short(from)}`, () => {
+      const alts = ((opts.alts ? opts.alts(from) : ALTS[from]) || []).filter(a => DATA.products[a.id] && !opts.rows.some(r => r.id === a.id) && (!opts.allow || opts.allow(a.id)));
+      const keep = step('Лишити як є', () => { swap = null; return { text: 'Гаразд, лишаю. Решта без змін:', list: opts.list() }; }); // без назви: «лишити рукола» — відмінок не вгадаєш
+      if (!alts.length) {
+        swap = null;
+        const own = opts.none && opts.none(from, step);
+        if (own) return { ...own, chips: [...(own.chips || []), keep] };
+        return {
+          text: `Чесно: замінити ${short(from)} поки нічим — іншого такого товару зараз немає. Можу не брати.`,
+          chips: [step(`Не брати ${short(from)}`, () => {
+            const r = opts.rows.find(x => x.id === from); if (r) { r.off = true; r.offNote = null; }
+            return { text: `Гаразд, ${short(from)} не беру.`, list: opts.list() };
+          }), keep],
+        };
+      }
+      swap = { ...opts, from, step };
+      const base = DATA.products[from].price;
+      return {
+        text: `Чим замінити ${short(from)}?`,
+        items: alts.slice(0, 3).map((a, i) => {
+          const d = DATA.products[a.id].price - base;
+          return { id: a.id, note: `${a.note} · ${d < 0 ? `на ${money(-d)} дешевше` : d > 0 ? `на ${money(d)} дорожче` : 'та сама ціна'}`, pick: i === 0, noAdd: true, act: 'Замінити' };
+        }),
+        chips: [keep],
+      };
+    });
+  };
+  /** «Замінити» на картці варіанта — лише якщо зараз іде заміна в цьому сценарії */
+  Scenarios.swapCard = function (to) {
+    if (!swap) return null;
+    const { from, rows, step } = swap;
+    return step(`Заміни на ${short(to)}`, () => {
+      const row = rows.find(r => r.id === from);
+      if (!row) return null;
+      const prev = { id: row.id, mark: row.mark, hint: row.hint };
+      Object.assign(row, { id: to, mark: 'new', hint: null });
+      const cur = swap; swap = null;
+      if (cur.onSwap) cur.onSwap(from, to);
+      const sum = rows.filter(r => !r.off).reduce((t, r) => t + DATA.products[r.id].price * (r.qty || 1), 0);
+      return {
+        confirm: {
+          text: `Замінено в чернетці: ${short(from)} → ${short(to)}`,
+          undo: () => { Object.assign(row, prev); if (cur.onSwap) cur.onSwap(from, null); return { text: `Скасував: повернув ${short(from)}.`, list: cur.list() }; },
+        },
+        text: `Решта без змін — тепер ${money(sum)}:`,
+        list: cur.list(),
+      };
+    });
+  };
+
   Scenarios.nextStep = function (opts = {}) {
     const total = opts.total != null ? opts.total : Cart.total();
     // крок належить сценарію: його route розуміє наступну репліку (прапорець — wine / replace / photoList…)
@@ -319,7 +403,7 @@ const Scenarios = {
   function cartChips() {
     const body = document.querySelector('#cart .cart-body');
     if (!body) return;
-    const R = Scenarios.all.replace;
+    const R = Scenarios.all.predict;
     const fresh = Scenarios.all.recipe && Scenarios.all.recipe.cartMatch(); // є інгредієнт якогось рецепта
     const intents = [
       R && R.cartSavings().length && { label: 'Де зекономити?', cartSave: true },
@@ -341,12 +425,12 @@ const Scenarios = {
     const swap = e.target.closest('[data-cart-swap]');
     if (!swap) return;
     e.stopPropagation();
-    chatOver(Scenarios.all.replace && Scenarios.all.replace.cartEntry(swap.dataset.cartSwap));
+    chatOver(Scenarios.all.predict && Scenarios.all.predict.cartEntry(swap.dataset.cartSwap));
   }, true);
   // жовтий чіп «Замінити товар» над кошиком
   const baseMgStart = MG.start.bind(MG);
   MG.start = function (t) {
-    const R = Scenarios.all.replace;
+    const R = Scenarios.all.predict;
     if (t.cartReplace) return chatOver(R && R.cartAsk());
     if (t.cartSave) return chatOver(R && R.cartSave());
     if (t.cartDelivery) return chatOver(R && R.cartDelivery());
@@ -361,7 +445,7 @@ const Scenarios = {
     const baseOpeners = chat.screenOpeners;
     chat.screenOpeners = function () {
       const list = baseOpeners.call(this);
-      const R = Scenarios.all.replace;
+      const R = Scenarios.all.predict;
       if (this.screenKey() !== 'home' || !R) return list;
       return list.map(o => (o.label === 'Зібрати покупки' ? { ...R.opener } : o));
     };
@@ -369,7 +453,7 @@ const Scenarios = {
     if (typeof MgIsland !== 'undefined') {
       const baseActivate = MgIsland.activate.bind(MgIsland);
       MgIsland.activate = function () {
-        const ctx = this.context, R = Scenarios.all.replace;
+        const ctx = this.context, R = Scenarios.all.predict;
         if (!ctx || ctx !== DATA.aiChat.island.home || !R) return baseActivate();
         this.hide();
         chat.open({ greet: false });
