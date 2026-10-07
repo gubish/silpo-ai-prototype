@@ -55,6 +55,8 @@ const Scenarios = {
     return [`${d.min ? `від ${money(d.min)}` : `до ${money(tiers[0].from)}`} — ${money(d.price)}`,
       ...tiers.map(t => `від ${money(t.from)} — ${money(t.price)}`)].join(', ');
   };
+  /** Ціна доставки для суми: найвищий поріг, якого досягли */
+  const deliveryPrice = t => ((delivery().tiers || []).filter(x => x.from <= t).sort((a, b) => b.from - a.from)[0] || delivery()).price;
   const FILL = ['pistachios', 'grapesRed', 'oliveOil']; // що часто докладають, якщо сценарій не дав свого
   /** Набір, що закриває різницю до порогу, з найменшою переплатою: з товарів сценарію (fill) і типових,
       яких ще немає в кошику. Навіть усіх не вистачає — додаємо кількість найдешевшому.
@@ -101,7 +103,8 @@ const Scenarios = {
               return { text: 'Скасував: прибрав їх із кошика.', chips: [opts.back, Scenarios.nextStep(opts).chip].filter(Boolean) };
             },
           },
-          text: `У кошику на ${money(Cart.total())}${f.note}.`,
+          // добили до порогу — кажемо, скільки тепер коштує доставка
+          text: `У кошику на ${money(Cart.total())}${f.note || `, доставка — ${money(deliveryPrice(Cart.total()))}`}.`,
           chips: [opts.back, f.chip].filter(Boolean),
         };
       })),

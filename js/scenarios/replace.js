@@ -22,17 +22,22 @@
   /* ---------- Демо-майонези (лише гілка Chats) ---------- */
   const DEMO = {
     mayoHome:  { name: 'Майонез «Домашній» 72%, 300 г', short: 'майонез «Домашній»', price: 89, img: 'home',
+                 desc: 'Густий класичний майонез із насиченим смаком і легкою гірчичною ноткою.', kcal: '660', prot: '1 г', fat: '72 г', carbs: '2.5 г', sugar: '2 г',
                  comp: 'Олія соняшникова, вода, яєчний жовток, гірчиця, цукор, сіль, оцет.', allergens: 'яйця, гірчиця' },
     mayoLight: { name: 'Майонез легкий 30%, 250 г', short: 'легкий майонез', price: 99, img: 'light',
+                 desc: 'Легкий майонез із мʼяким вершковим смаком — для салатів і соусів.', kcal: '300', prot: '0.8 г', fat: '30 г', carbs: '6 г', sugar: '3 г',
                  comp: 'Вода, олія соняшникова, крохмаль, яєчний жовток, гірчиця, сіль, оцет.', allergens: 'яйця, гірчиця' },
     mayoVegan: { name: 'Майонез без яєць, пісний, 250 г', short: 'майонез без яєць', price: 129, img: 'vegan',
+                 desc: 'Пісний майонез на білку гороху: ніжний, з легкою лимонною кислинкою, без присмаку яєць.', kcal: '540', prot: '0.5 г', fat: '58 г', carbs: '3 г', sugar: '1.5 г',
                  comp: 'Олія соняшникова, вода, білок гороху, гірчиця, сіль, лимонний сік.', allergens: 'гірчиця' },
   };
   Object.entries(DEMO).forEach(([id, d]) => {
     DATA.products[id] = { name: d.name, shortName: d.name.replace(/, \d+ г$/, ''), price: d.price, weight: d.name.match(/(\d+ г)/)[1],
                           image: `assets/images/products/demo/mayo-${d.img}.svg` };
     DATA.pdp.products[id] = {
+      description: d.desc,
       composition: { text: d.comp, allergens: { label: 'Алергени:', value: d.allergens } },
+      nutrition: d.kcal ? { kcal: d.kcal, protein: d.prot, fat: d.fat, carbs: d.carbs, sugar: d.sugar } : undefined,
     };
   });
 
@@ -58,6 +63,8 @@
     mayoLight: [{ id: 'mayoHome', tags: ['brand'], same: true, note: 'Класичний, 72%' }, { id: 'mayoVegan', tags: ['noEgg'], same: true, note: 'Без яєць — пісний' }, { id: 'hellmanns', tags: ['brand'], same: true, note: 'Hellmann’s Original 73%' }],
     mayoVegan: [{ id: 'mayoHome', tags: ['brand'], same: true, note: 'Класичний, 72%, з яйцями' }, { id: 'mayoLight', tags: ['light'], same: true, note: 'Легкий, 30%, з яйцями' }],
     milk:    [{ id: 'milk32', tags: [], note: 'Жирніше: 3,2% замість 2,5%' }],
+    cheese:    [{ id: 'processed', tags: ['cheaper'], note: 'Плавлений — на бутерброди' }, { id: 'blueCheese', tags: ['brand'], note: 'З блакитною пліснявою — пікантніше' }],
+    grapesRed: [{ id: 'grapes', tags: ['brand'], note: 'Фіолетовий — солодший' }],
     milk32:  [{ id: 'milk', tags: ['light'], same: true, note: 'Легше: 2,5% замість 3,2%' }],
     cottage: [{ id: 'cheese', tags: ['brand'], note: 'Твердий — до бутербродів' }, { id: 'processed', tags: ['cheaper'], note: 'Плавлений — на бутерброди' }],
     appleGolden: [
@@ -76,6 +83,7 @@
     appleGolden: ['яблук', 'голден'],
     tomatoes: ['помідор', 'томат'],
     cabbage: ['капуст'],
+    cheese: ['гауд', 'твердий сир'], marshmallow: ['маршмел'], peach: ['персик'],
     milk: ['молок'], milk32: ['молок'], bread: ['хліб', 'батон'], eggs: ['яй'], cottage: ['сир'], coffee: ['кав'],
     pistachios: ['фісташ'], oliveOil: ['олі'], grapesRed: ['виноград'],
   };
@@ -119,18 +127,24 @@
   /* ---------- Історія замовлень гостя (умовна: 6 тижнів) ----------
      every — як часто бере (днів), qty — звичайна кількість, last — днів від останньої покупки */
   const WEEKS = 6;
+  // Демо: звичайне замовлення ≈ 1 790 ₴ — після «Додати в кошик» до доставки за 1 ₴ (від 2 000 ₴)
+  // лишається ~210 ₴, і МГ пропонує добити тим, що гість і так іноді бере (RARE)
   const HISTORY = [
     { id: 'milk',      every: 7,  qty: 2, last: 7 },
     { id: 'bread',     every: 7,  qty: 1, last: 7 },
-    { id: 'banana',    every: 7,  qty: 1, last: 7 },
-    { id: 'water15',   every: 7,  qty: 2, last: 7 },
+    { id: 'banana',    every: 7,  qty: 2, last: 7 },
+    { id: 'water15',   every: 7,  qty: 4, last: 7 },
+    { id: 'tomatoes',  every: 7,  qty: 1, last: 7 },
+    { id: 'cheese',    every: 7,  qty: 2, last: 7 },
+    { id: 'grapesRed', every: 7,  qty: 1, last: 7 },
     { id: 'eggs',      every: 14, qty: 1, last: 13 },
     { id: 'cottage',   every: 14, qty: 1, last: 6 },
     { id: 'hellmanns', every: 30, qty: 1, last: 27 },
-    { id: 'coffee',    every: 30, qty: 1, last: 9 },
+    { id: 'coffee',    every: 30, qty: 1, last: 27 },
   ];
-  // брав рідко — не «передбачаємо», але показуємо на «Що ще я брав?»
-  const RARE = [{ id: 'pistachios', last: 35 }, { id: 'oliveOil', last: 21 }, { id: 'grapesRed', last: 28 }];
+  // брав рідко — не «передбачаємо», але показуємо на «Що ще я брав?» і пропонуємо докласти до порогу
+  const RARE = [{ id: 'pistachios', last: 35 }, { id: 'marshmallow', last: 21 }, { id: 'peach', last: 28 }];
+  const fillIds = () => RARE.map(x => x.id);
   const history = () => HISTORY.filter(h => P(h.id));
   /** «Пора» за період: до наступної звичайної покупки лишилось не більше днів, ніж у періоді */
   const due = (h, days) => h.every - h.last <= days;
@@ -232,7 +246,7 @@
       list: draftList(),
       context: periodCtx(),
       after: [notYet(PERIODS.week.days), T.ask].filter(Boolean).join(' '),
-      chips: [node(T.more, more), near ? node('Як доставити дешевше?', deliveryTip) : null].filter(Boolean),
+      chips: [node(T.more, more)], // «Як доставити дешевше?» — після «Додати в кошик» (крок після завдання)
     };
   }
 
@@ -309,7 +323,7 @@
       тут лише свої кроки: «Де ще зекономити?», доставка з «Додати» в чернетку, «Замінити ще щось» */
   function followUp() {
     return Scenarios.nextStep({
-      scenario: ID, total: poolTotal(),
+      scenario: ID, total: poolTotal(), fill: fillIds(),
       save: S.priceMatters ? node('Де ще зекономити?', saveMore) : null,
       delivery: node('Як доставити дешевше?', deliveryTip),
       own: node(T.replaceMore, () => askWhich()),
@@ -501,7 +515,7 @@
       },
       list: draftList(),
       // завдання виконано — один суміжний крок (Scenarios.nextStep), уже від справжнього кошика
-      ...(() => { const f = Scenarios.nextStep({ scenario: ID });
+      ...(() => { const f = Scenarios.nextStep({ scenario: ID, fill: fillIds() });
         return { text: `У кошику на ${money(Cart.total())}${f.note}.`, chips: [f.chip].filter(Boolean) }; })(),
     };
   }
