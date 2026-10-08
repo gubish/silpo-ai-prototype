@@ -651,6 +651,7 @@
       if (/інш|ще варіант|не те|пробував/.test(t)) return node(t, other);
       if (/не вирішив|не знаю|ще не/.test(t)) return node(t, () => update({ dish: 'undecided' }));
     }
+    if (/брав|купував|пили|замовляв|в чек/.test(t)) return null; // «яке вино я брав» — це історія покупок
     if (!/вин|шабл|chablis|каберне|мальбек|піно|просекко|совіньйон|рислінг|розе/.test(t)) return null;
     return node(t, () => {
       S = fresh();

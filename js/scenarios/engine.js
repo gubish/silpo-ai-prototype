@@ -196,6 +196,47 @@ const Scenarios = {
     });
   };
 
+  /* ---------- Прямий контакт підтримки (контакти — з сайту Сільпо, «Підтримка Гостей») ----------
+     Показуємо, лише коли гість злий на сервіс або сам просить людину. Месенджери — першими;
+     поза годинами гарячої лінії кажемо, що працює зараз. */
+  const SUPPORT = { hotline: '0 800 301 707', abroad: '+38 044 496 32 38', from: 7, to: 23, hours: '07:00–23:00', email: 'program@silpo.ua' };
+  Scenarios.supportOpen = (d = new Date()) => d.getHours() >= SUPPORT.from && d.getHours() < SUPPORT.to;
+  Scenarios.supportCard = function () {
+    const open = Scenarios.supportOpen(), tel = n => n.replace(/[^\d+]/g, '');
+    const ic = n => `<img src="assets/icons/support/${n}.svg" alt="">`;
+    return `<div class="ai-support" role="group" aria-label="Підтримка Гостей">
+      <div class="ai-support__title">Підтримка Гостей</div>
+      <div class="ai-support__msgr">
+        <button type="button" class="ai-support__app">${ic('telegram')}<span>Telegram</span></button>
+        <button type="button" class="ai-support__app">${ic('viber')}<span>Viber</span></button>
+        <button type="button" class="ai-support__app">${ic('messenger')}<span>Messenger</span></button>
+      </div>
+      <a class="ai-support__row${open ? '' : ' is-closed'}" href="tel:${tel(SUPPORT.hotline)}">${ic('phone')}<span><b>${SUPPORT.hotline}</b><small>Гаряча лінія · ${SUPPORT.hours}${open ? '' : ' · зараз не працює'}</small></span></a>
+      <a class="ai-support__row${open ? '' : ' is-closed'}" href="tel:${tel(SUPPORT.abroad)}">${ic('phone')}<span><b>${SUPPORT.abroad}</b><small>Для дзвінків з-за кордону</small></span></a>
+      <a class="ai-support__row" href="mailto:${SUPPORT.email}">${ic('mail')}<span><b>${SUPPORT.email}</b></span></a>
+    </div>`;
+  };
+  /** Текст до картки: з урахуванням годин роботи */
+  Scenarios.supportText = () => (Scenarios.supportOpen()
+    ? 'Ось як звʼязатися з людиною з підтримки — найшвидше в месенджері або гарячою лінією:'
+    : `Гаряча лінія зараз не працює (${SUPPORT.hours}) — напиши в месенджер, там відповідять:`);
+
+  /** Чіпси вітального екрана (головна гілки C): коли розмова ніби починається наново — після образи,
+      флірту, «не моя тема» тощо. «Зібрати покупки» веде в «Передбач моє замовлення». */
+  /** Вітальні чіпси, за якими вже є сценарій: «Зібрати покупки» → «Передбач», «Хочу щось поїсти» → рецепт
+      (підпис чіпа лишається словами гостя) */
+  Scenarios.toScenario = o => {
+    const P = Scenarios.all.predict, R = Scenarios.all.recipe;
+    if (o.label === 'Зібрати покупки' && P) return { ...P.opener };
+    if (o.label === 'Хочу щось поїсти' && R) return { ...R.opener, label: o.label };
+    return o;
+  };
+  Scenarios.welcome = function () {
+    return ((DATA.aiChat.screens.home || {}).openers || [])
+      .map(o => (typeof o === 'string' ? DATA.aiChat.openers.find(x => x.id === o) : o)).filter(Boolean)
+      .map(Scenarios.toScenario);
+  };
+
   Scenarios.nextStep = function (opts = {}) {
     const total = opts.total != null ? opts.total : Cart.total();
     // крок належить сценарію: його route розуміє наступну репліку (прапорець — wine / replace / photoList…)
@@ -260,7 +301,7 @@ const Scenarios = {
     const list = r.list && { ...r.list, scenario: n.scenario }; // чернетка списку — «Замінити» в рядку піде в цей сценарій
     // рядок контексту — лише припущення МГ: усе, що казав гість, і так видно в переписці
     const context = (r.context || []).filter(c => c.source === 'assumption');
-    this.reply(r.text, r.items, this.nodes(r.chips), r.mood, { after: r.after, context, anchor, list });
+    this.reply(r.text, r.items, this.nodes(r.chips), r.mood, { after: r.after, context, anchor, list, card: r.card });
   }
 
   /** Старі чернетки лишаються такими, як були: копіюємо їхні рядки (остання ділить рядки зі сценарієм) */
@@ -450,7 +491,7 @@ const Scenarios = {
       const list = baseOpeners.call(this);
       const R = Scenarios.all.predict;
       if (this.screenKey() !== 'home' || !R) return list;
-      return list.map(o => (o.label === 'Зібрати покупки' ? { ...R.opener } : o));
+      return list.map(Scenarios.toScenario);
     };
     // острівець «Давай зберу тобі кошик?»: тап — згода гостя, далі той самий сценарій
     if (typeof MgIsland !== 'undefined') {

@@ -175,6 +175,7 @@
   const missingOf = t => Object.keys(MISSING).find(w => t.includes(w));
 
   function route(t, lastNode) {
+    if (/замін|замість/.test(t)) return null; // «чим замінити…» — це заміна, не питання про товар
     const inTalk = lastNode && lastNode.availability;
     const named = productOf(t), miss = missingOf(t);
     const id = named || (!miss && inTalk && /(^|\s)(він|вона|воно|вони|ньому|ній|них|його|її|їх)(\s|\?|$)|^а /.test(t) ? last : null);

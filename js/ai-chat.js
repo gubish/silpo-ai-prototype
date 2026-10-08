@@ -482,7 +482,7 @@ const AiChat = {
     let lastList = -1;
     this.thread.forEach((m, i) => { if (m.kind === 'list') lastList = i; });
     const listCard = (m, i) => this.listCard(m, i, i === lastList);
-    this.threadEl.innerHTML = this.thread.map((m, i) => m.kind === 'list' ? `${listCard(m, i)}${tags(m, i)}` : m.kind === 'confirm' ? `
+    this.threadEl.innerHTML = this.thread.map((m, i) => m.kind === 'list' ? `${listCard(m, i)}${tags(m, i)}` : m.kind === 'card' ? `${m.html}${tags(m, i)}` : m.kind === 'confirm' ? `
       <div class="ai-confirm${m.undone ? ' is-undone' : ''}" role="status" data-msg="${i}">
         <img src="assets/icons/check-blue.svg" alt="">
         <span class="ai-confirm__text">${m.text}</span>
@@ -613,11 +613,13 @@ const AiChat = {
       this.thread.splice(this.thread.indexOf(typing), 1);
       const withCards = products && products.length;
       const list = extra && extra.list; // чернетка списку під текстом (гілка D)
-      this.thread.push({ from: 'bot', text, tags: withCards || list ? null : tags, context: extra && extra.context });
+      const card = extra && extra.card; // готовий блок під текстом, напр. контакти підтримки (гілка D)
+      this.thread.push({ from: 'bot', text, tags: withCards || list || card ? null : tags, context: extra && extra.context });
       this.anchor = extra && extra.anchor != null ? extra.anchor : this.thread.length - 1; // цю відповідь — першою на екрані (extra.anchor — інше повідомлення, напр. підтвердження дії)
       const after = (withCards || list) && extra && extra.after;
       if (withCards) this.thread.push({ from: 'bot', products, tags: after || list ? null : tags });
       if (list) this.thread.push({ from: 'bot', kind: 'list', ...list, tags: after ? null : tags });
+      if (card) this.thread.push({ from: 'bot', kind: 'card', html: card, tags: after ? null : tags });
       if (after) this.thread.push({ from: 'bot', text: after, tags, cont: true }); // продовження: без аватара
       this.render();
     }, DATA.aiChat.replyDelay);

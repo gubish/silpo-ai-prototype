@@ -1,5 +1,11 @@
 /* =====================================================================
    СЦЕНАРІЙ «Раціон і КБЖУ» (гілка Chats; працює і в C). За правилами docs/mg-dialog-rules.md.
+   Ситуації (cases — підпункти в списку сценаріїв), від найчастішої:
+   • «Який перекус з найбільшим білком?» — карусель за білком на 100 г, на картці ще «₴ за 10 г білка».
+   • «Де найдешевший білок?» — ті самі товари за ціною 10 г білка (з ціни й харчової цінності).
+   • «Легкий перекус до 150 ккал» — найлегші на 100 г.
+   • «Чим замінити майонез, щоб легше?» — варіанти з різницею в ккал.
+   • «Допоможи з раціоном на тиждень» — набір на тиждень (нижче), рідша ситуація.
    • Мета невідома («Допоможи з раціоном на тиждень») → ОДНЕ ключове питання: Більше білка /
      Менше калорій / Є обмеження за здоровʼям (правило «Корисний результат за наміром»: мета — до плану).
    • Мета відома → одразу чернетка на тиждень. У рядку — цифра з харчової цінності товару
@@ -46,7 +52,7 @@
   // склад для критичних фільтрів (товари з інших сценаріїв)
   const CONTAINS = { eggs: [], cottage: ['lactose'], cheese: ['lactose'], milk: ['lactose'], yogurtGreek: ['lactose'], lentils: ['gluten*'], tuna: [] };
   // вага упаковки, г (10 яєць ≈ 600 г)
-  const GRAMS = { chicken: 1000, tuna: 150, lentils: 500, yogurtGreek: 300, eggs: 600, cottage: 350, cheese: 200, milk: 900,
+  const GRAMS = { chicken: 1000, tuna: 150, pistachios: 250, lentils: 500, yogurtGreek: 300, eggs: 600, cottage: 350, cheese: 200, milk: 900,
                   appleGolden: 1000, pears: 1000, peach: 1000, watermelon: 2000, grapes: 500 };
 
   /* ---------- Набори на тиждень на 1 людину ---------- */
@@ -68,6 +74,63 @@
     appleGolden: [{ id: 'applesGreen', note: 'Зелені — трохи менше цукру' }],
     pears:       [{ id: 'peach', note: 'Персик — менше калорій' }, { id: 'applesGreen', note: 'Зелені яблука — хрусткі, менше цукру' }],
   };
+
+  /* ---------- Вибір за цифрою ---------- */
+  // перекуси без готування; для «найдешевшого білка» — і те, що треба готувати (з позначкою)
+  const SNACKS = ['tuna', 'pistachios', 'cheese', 'cottage', 'yogurtGreek', 'eggs'];
+  const COOK = { chicken: 'треба готувати', lentils: 'треба варити', eggs: 'треба варити' };
+  const LIGHT = ['watermelon', 'melon', 'peach', 'appleGolden', 'pears', 'grapes', 'yogurtGreek', 'banana'];
+  const IN = { hellmanns: 'Hellmann’s', mayoHome: '«Домашньому»', cheese: 'твердому сирі', cottage: 'кисломолочному сирі' }; // «замість 667 у …»
+  const LIGHTER = { hellmanns: ['mayoLight', 'mayoVegan', 'mayoHome'], mayoHome: ['mayoLight', 'mayoVegan'], cheese: ['cottage'], cottage: ['yogurtGreek'] };
+  const has = id => P(id) && num(N(id).protein) > 0;
+  const per10 = id => P(id).price / (num(N(id).protein) * (GRAMS[id] || 100) / 100) * 10; // ₴ за 10 г білка
+  const uah = v => `${v.toFixed(1).replace('.', ',')} ₴`;
+  const g = v => `${String(num(v)).replace('.', ',')} г`;
+
+  /** «Який перекус з найбільшим білком?» — вибір одного з кількох → карусель, «+» на картці */
+  function proteinPick() {
+    const list = SNACKS.filter(has).sort((a, b) => num(N(b).protein) - num(N(a).protein)).slice(0, 5);
+    const top = list[0];
+    return {
+      text: `Найбільше білка — ${nameOf(top)}: ${g(N(top).protein)} на 100 г. Ось пʼять перекусів без готування, від більшого:`,
+      items: list.map((id, i) => ({ id, note: `${g(N(id).protein)} білка на 100 г · ${uah(per10(id))} за 10 г`, pick: i === 0 })),
+      chips: [node('А де найдешевший білок?', cheapProtein)],
+    };
+  }
+  /** «Де найдешевший білок?» — ціна 10 г білка, з готуванням чесно позначено */
+  function cheapProtein() {
+    const list = [...SNACKS, 'chicken', 'lentils'].filter((id, i, a) => has(id) && a.indexOf(id) === i && GRAMS[id])
+      .sort((a, b) => per10(a) - per10(b)).slice(0, 5);
+    const top = list[0], ready = list.find(id => !COOK[id]);
+    return {
+      text: `Найдешевший білок — ${nameOf(top)}: ${uah(per10(top))} за 10 г${COOK[top] ? `, але ${COOK[top]}` : ''}.`
+        + (ready && ready !== top ? ` З готового — ${nameOf(ready)}, ${uah(per10(ready))}.` : ''),
+      items: list.map((id, i) => ({ id, note: `${uah(per10(id))} за 10 г білка${COOK[id] ? ` · ${COOK[id]}` : ''}`, pick: i === 0 })),
+      // наступний крок — з цієї ж відповіді, а не інша ситуація зі списку
+      chips: [node('Збери білкове на тиждень', () => { S = S || { goal: null, rows: [], people: 1, peopleSource: 'assumption', avoid: [], swaps: {}, inCart: false }; return plan('protein'); })],
+    };
+  }
+  /** «Легкий перекус до N ккал» — на 100 г, найлегші першими */
+  function light(limit) {
+    const list = LIGHT.filter(id => P(id) && N(id).kcal && num(N(id).kcal) <= limit).sort((a, b) => num(N(a).kcal) - num(N(b).kcal)).slice(0, 5);
+    if (!list.length) return { text: `До ${limit} ккал на 100 г зараз нічого не знайшов.` };
+    return {
+      text: `Найлегше — ${nameOf(list[0])}: ${N(list[0]).kcal} ккал на 100 г. Усі ці — до ${limit} ккал на 100 г:`,
+      items: list.map((id, i) => ({ id, note: `${N(id).kcal} ккал на 100 г${num(N(id).protein) >= 5 ? ` · ${g(N(id).protein)} білка` : ''}`, pick: i === 0 })),
+      chips: [node('Збери легке на тиждень', () => { S = S || { goal: null, rows: [], people: 1, peopleSource: 'assumption', avoid: [], swaps: {}, inCart: false }; return plan('light'); })],
+    };
+  }
+  /** «Чим замінити X, щоб легше?» — варіанти з різницею в ккал */
+  function lighter(id) {
+    const base = num(N(id).kcal);
+    const list = (LIGHTER[id] || []).filter(x => P(x) && N(x).kcal && base - num(N(x).kcal) >= 50) // різниця на 7 ккал — не «легше».sort((a, b) => num(N(a).kcal) - num(N(b).kcal));
+    if (!base || !list.length) return { text: `Легшої заміни для ${nameOf(id)} у даних не знайшов.` };
+    return {
+      text: `Найлегше — ${nameOf(list[0])}: ${N(list[0]).kcal} ккал на 100 г замість ${base} у ${IN[id] || nameOf(id)}.`,
+      items: list.map((x, i) => ({ id: x, note: `${N(x).kcal} ккал на 100 г — на ${Math.round(base - num(N(x).kcal))} менше`, pick: i === 0 })),
+      chips: [node('Збери легке на тиждень', () => { S = S || { goal: null, rows: [], people: 1, peopleSource: 'assumption', avoid: [], swaps: {}, inCart: false }; return plan('light'); })],
+    };
+  }
 
   const T = {
     opener: 'Допоможи з раціоном на тиждень',
@@ -173,6 +236,14 @@
 
   /* ---------- Своїми словами ---------- */
   function route(t, last) {
+    // вибір за цифрою — працює й без розмови про раціон
+    if (/білк|білок|протеїн/.test(t) && /дешев|ціна|вигідн|₴/.test(t)) return node(t, () => { S = S || { goal: null, rows: [], people: 1, peopleSource: 'assumption', avoid: [], swaps: {}, inCart: false }; return cheapProtein(); });
+    if (/білк|білок|протеїн/.test(t) && /перекус|найбільш|більше всього|багат/.test(t) && !/раціон|тиждень/.test(t)) return node(t, proteinPick);
+    if (/легк|ккал|калор/.test(t) && /перекус/.test(t)) { const m = t.match(/(\d{2,3})\s*ккал/); return node(t, () => light(m ? Number(m[1]) : 150)); }
+    if (/замін|замість/.test(t) && /легш|калор|ккал/.test(t)) {
+      const id = /майонез/.test(t) ? 'hellmanns' : /твердий сир|гауд/.test(t) ? 'cheese' : /сир/.test(t) ? 'cottage' : null;
+      if (id) return node(t, () => lighter(id));
+    }
     if (S && last && last.diet && !S.inCart) {
       if (/вагітн|годую|діабет|тиск|нирк|печінк|гастрит|виразк|лікар|дієтолог|хвороб|діагноз/.test(t)) return node(t, health);
       if (/лактоз|молочн/.test(t) && /без|не можна|не їм|непереносим/.test(t)) return node(t, () => { S.avoid.push('lactose'); return plan(S.goal || 'protein'); });
@@ -191,7 +262,14 @@
 
   Scenarios.define({
     id: 'diet',
-    opener: node(T.opener, () => start()),
+    opener: node('Який перекус з найбільшим білком?', proteinPick),
+    cases: [
+      { label: 'Найбільше білка в перекусі', ask: 'Який перекус з найбільшим білком?' },
+      { label: 'Найдешевший білок', ask: 'Де найдешевший білок?' },
+      { label: 'Легкий перекус до 150 ккал', ask: 'Що взяти на легкий перекус до 150 ккал?' },
+      { label: 'Чим замінити майонез, щоб легше', ask: 'Чим замінити майонез, щоб було менше калорій?' },
+      { label: 'Раціон на тиждень', ask: 'Допоможи з раціоном на тиждень' },
+    ],
     route,
     removeCondition: type => (S && type === 'people' ? node('Змінити «на 1 людину»', () => ({ text: 'На скількох рахувати?', chips: [1, 2, 3].map(n => node(`На ${n}`, () => setPeople(n))) })) : null),
     rowAction: id => (S && !S.inCart ? Scenarios.swapOffer({

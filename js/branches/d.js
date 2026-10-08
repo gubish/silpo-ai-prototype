@@ -31,12 +31,12 @@
           { id: 'recipe', label: 'Рецепти й інгредієнти' },
           { id: 'photo-list', label: 'Список покупок із фото' },
           { id: 'event', label: 'Кошик під подію' },
+          { id: 'budget', label: 'Кошик під бюджет' },
           { id: 'availability', label: 'Наявність і питання про товар' },
           { id: 'diet', label: 'Раціон і КБЖУ' },
           { id: 'history', label: 'Історія покупок і чеків' },
-          { id: 'rude', label: 'Реакція на грубощі' },
-          { id: 'promo', label: 'Товари по акції' },
-          { id: 'budget', label: 'Підбір під бюджет' },
+          { id: 'app-search', label: 'Знайти у застосунку' },
+          { id: 'rude', label: 'Балачки й грубощі' },
         ],
       },
     },
@@ -44,7 +44,9 @@
 
   if (Branch.current !== 'd') return;
   const chat = AiChat;
-  Scenarios.onStep = id => markActive(id); // крок сценарію — підсвітка в списку поза телефоном
+  // крок сценарію — підсвітка в списку поза телефоном. Розмова перейшла в інший сценарій (чіп «Хочу щось поїсти»
+  // з «Балачок» → рецепт) — список не чіпаємо: лишається обраний сценарій і його розгорнуті ситуації
+  Scenarios.onStep = id => { if (id === active) markActive(id); };
 
   /* Привітання на «головній» (тобто в чаті) — теги готових сценаріїв */
   const baseOpeners = chat.screenOpeners;
@@ -61,6 +63,11 @@
     if (!s) return;
     this.thread = [];
     this.render();
+    // ситуація зі списку (підпункт сценарію) — починаємо з репліки гостя, інакше — з першого запиту
+    // «Новий чат» посеред ситуації — знову з її репліки (activeAsk), а не з першого запиту сценарію
+    const t = pendingAsk || activeAsk;
+    pendingAsk = null;
+    if (t) { this.ask(t); return; }
     this.runNode({ ...s.opener, kind: 'node' });
   };
 
@@ -85,7 +92,13 @@
   try { active = localStorage.getItem(SKEY); } catch (e) { /* приватний режим */ }
 
   /** Новий чат і одразу перший запит сценарію — без привітання */
-  function startScenario(id) {
+  let pendingAsk = null; // репліка гостя, з якої почати (ситуація сценарію в списку)
+  let activeCase = null;
+  let activeAsk = null;  // репліка поточної ситуації — з неї ж починає «Новий чат»
+  function startScenario(id, ask, caseIdx) {
+    pendingAsk = ask || null;
+    activeAsk = ask || null;
+    activeCase = ask ? caseIdx : null;
     if (!Scenarios.all[id]) id = Scenarios.ready()[0] && Scenarios.ready()[0].id;
     if (!id) return;
     active = id;
@@ -98,8 +111,11 @@
   }
 
   function markActive(id) {
-    document.querySelectorAll('[data-scenario]').forEach(b =>
-      b.setAttribute('aria-pressed', String(b.dataset.scenario === id)));
+    document.querySelectorAll('.scenario-panel__item[data-scenario]').forEach(b =>
+      b.setAttribute('aria-pressed', String(b.dataset.scenario === id && activeCase == null)));
+    document.querySelectorAll('.scenario-panel__case').forEach(b =>
+      b.setAttribute('aria-pressed', String(b.dataset.scenario === id && Number(b.dataset.case) === activeCase)));
+    document.querySelectorAll('.scenario-panel__cases').forEach(c => c.classList.toggle('is-open', c.dataset.of === id));
   }
 
   /* Поза телефоном: список сценаріїв (на телефоні — у шторці «Налаштування прототипу») */
@@ -111,19 +127,42 @@
     box.setAttribute('aria-label', T.title);
     box.innerHTML = `<span class="chips-toggle__label">${T.title}</span>` + T.list.map(x => {
       const ready = Boolean(Scenarios.all[x.id]);
+      // ситуації сценарію (Scenarios.define({ cases: [{ label, ask }] })) — підпункти; тап починає з репліки гостя
+      const cases = ready ? (Scenarios.all[x.id].cases || []) : [];
       return `<button class="scenario-panel__item" type="button" data-scenario="${x.id}" aria-pressed="false" ${ready ? '' : 'disabled'}>
           <span>${x.label}</span>${ready ? '' : `<small>${T.soon}</small>`}
-        </button>`;
+        </button>${cases.length ? `<div class="scenario-panel__cases" data-of="${x.id}">${cases.map((c, i) =>
+          `<button class="scenario-panel__case" type="button" data-scenario="${x.id}" data-case="${i}" aria-pressed="false">${c.label}</button>`).join('')}</div>` : ''}`;
     }).join('');
     box.addEventListener('click', e => {
       const b = e.target.closest('[data-scenario]:not(:disabled)');
-      if (b) startScenario(b.dataset.scenario);
+      if (!b) return;
+      const c = b.dataset.case != null ? Scenarios.all[b.dataset.scenario].cases[Number(b.dataset.case)] : null;
+      startScenario(b.dataset.scenario, c && c.ask, c ? Number(b.dataset.case) : null);
     });
     document.body.appendChild(box);
   }
 
+  /* Над QR-кодом — посилання для розробників: правила МГ, інструкція для LLM і що ще передати */
+  function renderDevCard() {
+    const base = 'https://github.com/gubish/silpo-ai-prototype/blob/main/docs/';
+    const box = document.createElement('nav');
+    box.className = 'dev-card';
+    box.setAttribute('aria-label', 'Для розробників');
+    box.innerHTML = `<b>Для розробників</b>
+      <a href="${base}mg-dialog-rules.md" target="_blank" rel="noopener">Правила МГ</a>
+      <a href="${base}mg-dialog-rules.md#інструкція-для-моделі" target="_blank" rel="noopener">Інструкція для LLM</a>
+      <a href="${base}for-developers.md" target="_blank" rel="noopener">Що ще передати</a>`;
+    document.body.appendChild(box);
+    // стоїть одразу над карткою QR (її висота залежить від підпису)
+    const place = () => { const qr = document.querySelector('.qr-card'); if (qr) box.style.bottom = `${24 + qr.offsetHeight + 12}px`; };
+    place();
+    window.addEventListener('resize', place);
+  }
+
   document.addEventListener('DOMContentLoaded', () => { // після App.init і AiChat.init
     renderPanel();
+    renderDevCard();
     // відкрили посилання на картку чи кошик — чат під ними; інакше — одразу чат
     if (!App.current || App.current.id === 'home') startScenario(active);
     // повернулися на головну (не з чату) — це і є чат
