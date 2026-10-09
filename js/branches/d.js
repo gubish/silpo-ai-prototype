@@ -67,7 +67,7 @@
     // «Новий чат» посеред ситуації — знову з її репліки (activeAsk), а не з першого запиту сценарію
     const t = pendingAsk || activeAsk;
     pendingAsk = null;
-    if (t) { this.ask(t); return; }
+    if (t) { prefill(activeBefore); this.ask(t); return; } // як завжди — прокрутка до відповіді МГ
     this.runNode({ ...s.opener, kind: 'node' });
   };
 
@@ -95,9 +95,11 @@
   let pendingAsk = null; // репліка гостя, з якої почати (ситуація сценарію в списку)
   let activeCase = null;
   let activeAsk = null;  // репліка поточної ситуації — з неї ж починає «Новий чат»
-  function startScenario(id, ask, caseIdx) {
+  let activeBefore = []; // репліки гостя, що вже є в історії чату до неї (ситуація { before: [...] })
+  function startScenario(id, ask, caseIdx, before) {
     pendingAsk = ask || null;
     activeAsk = ask || null;
+    activeBefore = ask ? before || [] : [];
     activeCase = ask ? caseIdx : null;
     if (!Scenarios.all[id]) id = Scenarios.ready()[0] && Scenarios.ready()[0].id;
     if (!id) return;
@@ -108,6 +110,21 @@
     chat.open({ instant: true, greet: false });
     chat.reset(); // reset сам запускає перший запит active
     markActive(id);
+  }
+
+  /** Історія чату до ситуації (напр. перша образа й відповідь МГ перед повторною): репліки гостя
+      і відповіді сценаріїв — одразу, без «друкує…» і без чіпсів під ними */
+  function prefill(texts) {
+    texts.forEach(text => {
+      const t = text.toLocaleLowerCase('uk-UA');
+      const s = Object.values(Scenarios.all).find(x => x.route && x.route(t, chat.lastNode));
+      const n = s && s.route(t, chat.lastNode);
+      chat.thread.push({ from: 'user', text });
+      const r = (n && n.run && n.run()) || {};
+      if (r.text) chat.thread.push({ from: 'bot', text: r.text });
+      if (n) chat.lastNode = n;
+    });
+    if (texts.length) chat.render();
   }
 
   function markActive(id) {
@@ -127,7 +144,8 @@
     box.setAttribute('aria-label', T.title);
     box.innerHTML = `<span class="chips-toggle__label">${T.title}</span>` + T.list.map(x => {
       const ready = Boolean(Scenarios.all[x.id]);
-      // ситуації сценарію (Scenarios.define({ cases: [{ label, ask }] })) — підпункти; тап починає з репліки гостя
+      // ситуації сценарію (Scenarios.define({ cases: [{ label, ask, before? }] })) — підпункти; тап починає з репліки гостя
+      // (before — репліки, що вже є в історії чату перед нею)
       const cases = ready ? (Scenarios.all[x.id].cases || []) : [];
       return `<button class="scenario-panel__item" type="button" data-scenario="${x.id}" aria-pressed="false" ${ready ? '' : 'disabled'}>
           <span>${x.label}</span>${ready ? '' : `<small>${T.soon}</small>`}
@@ -138,7 +156,7 @@
       const b = e.target.closest('[data-scenario]:not(:disabled)');
       if (!b) return;
       const c = b.dataset.case != null ? Scenarios.all[b.dataset.scenario].cases[Number(b.dataset.case)] : null;
-      startScenario(b.dataset.scenario, c && c.ask, c ? Number(b.dataset.case) : null);
+      startScenario(b.dataset.scenario, c && c.ask, c ? Number(b.dataset.case) : null, c && c.before);
     });
     document.body.appendChild(box);
   }

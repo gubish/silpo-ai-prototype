@@ -556,12 +556,14 @@ const AiChat = {
             </span>`) : ''}
         </div>`;
     };
+    // badge може бути функцією від суми того, що беремо (напр. залишок бюджету — змінюється зі степером)
+    const badge = typeof m.badge === 'function' ? m.badge(sum(on)) : m.badge;
     const addText = !on.length ? 'Нічого не обрано'
       : on.length === m.rows.length ? `${m.addLabel || 'Додати в кошик'} · ${UI.money(sum(on))}`
       : `Додати ${on.length} з ${m.rows.length} · ${UI.money(sum(on))}`;
     return `
       <div class="ai-list${m.inCart ? ' is-in-cart' : ''}" data-msg="${i}">
-        <div class="ai-list__head"><span>${m.title}</span>${m.badge && !m.inCart ? `<span class="ai-list__badge">${m.badge}</span>` : ''}</div>
+        <div class="ai-list__head"><span>${m.title}</span>${badge && !m.inCart ? `<span class="ai-list__badge${/^понад/.test(badge) ? ' is-warn' : ''}">${badge}</span>` : ''}</div>
         ${m.recipe ? `<div class="ai-recipe">
           <span class="ai-recipe__meta">${m.recipe.meta}</span>
           <details class="ai-recipe__steps"><summary>${m.recipe.stepsLabel}</summary><ol>${m.recipe.steps.map(x => `<li>${x}</li>`).join('')}</ol></details>

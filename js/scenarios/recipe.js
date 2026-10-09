@@ -179,7 +179,7 @@
   function ctx() {
     const c = [];
     if (S.portionsSource === 'assumption') c.push({ type: 'portions', label: `на ${count(S.portions, PORT)}, як у рецепті`, source: 'assumption' });
-    if (S.pantryHome && R[S.recipe].pantry.length) c.push({ type: 'pantry', label: `${R[S.recipe].pantryLabel}, припущення`, source: 'assumption' });
+    if (S.pantryHome && R[S.recipe].pantry.length) c.push({ type: 'pantry', label: R[S.recipe].pantryLabel, source: 'assumption' });
     return c;
   }
 

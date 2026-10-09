@@ -164,6 +164,7 @@
   color: var(--blue-500);
   white-space: nowrap;
 }
+.ai-list__badge.is-warn { background: #fdecec; color: var(--red-500); } /* напр. «понад бюджет на 30 ₴» */
 .ai-list__row {
   display: flex;
   align-items: center;

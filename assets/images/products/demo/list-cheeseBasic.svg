@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 324 324" width="324" height="324">
+  <rect width="324" height="324" fill="#fff"/>
+  <path d="M70 250 L254 250 L254 150 Z" fill="#f2d16b"/><path d="M70 250 L254 150 L254 120 L70 222 Z" fill="#f2d98a"/><circle cx="200" cy="215" r="9" fill="#d9ad45"/><circle cx="160" cy="232" r="6" fill="#d9ad45"/><text x="162" y="98" text-anchor="middle" font-family="Arial, sans-serif" font-weight="700" font-size="20" fill="#7a5a12">Сир твердий</text><text x="162" y="122" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#7a5a12">Російський</text>
+  
+</svg>

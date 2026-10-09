@@ -214,7 +214,7 @@
     if (st.dish && st.dish !== 'undecided') c.push({ type: 'dish', label: T.dishCtx[st.dish], source: 'guest' });
     if (st.color) c.push({ type: 'color', label: T.colorCtx[st.color], source: 'guest' });
     if (st.below) c.push({ type: 'below', label: `дешевше за ${money(st.below)}`, source: 'guest' });
-    else if (st.max) c.push({ type: 'max', label: st.maxSource === 'assumption' ? `до ${money(st.max)}, припущення` : `до ${money(st.max)}`, source: st.maxSource });
+    else if (st.max) c.push({ type: 'max', label: `до ${money(st.max)}`, source: st.maxSource });
     return c.filter(x => !(st.just || []).includes(x.type));
   }
 

@@ -135,6 +135,7 @@ const Scenarios = {
     bakoma:      [{ id: 'marshmallow', note: 'Маршмелоу — легше' }],
     hellmanns:   [{ id: 'mayoLight', note: 'Легкий, 30% жиру' }, { id: 'mayoHome', note: 'Класичний, 72%' }],
   };
+  Scenarios.alts = ALTS; // сценарій може дописати свої пари (напр. «Кошик під бюджет»)
   const lcFirst = t => t.charAt(0).toLocaleLowerCase('uk-UA') + t.slice(1);
   const short = id => lcFirst(DATA.products[id].shortName || DATA.products[id].name);
   let swap = null; // що зараз замінюємо: { scenario, rows, from, list, allow }
@@ -237,6 +238,13 @@ const Scenarios = {
       .map(Scenarios.toScenario);
   };
 
+  /** Прокрутити екран до блоку: { screen, sel, has } — перший sel, у тексті якого є has */
+  Scenarios.spot = function ({ screen, sel, has }) {
+    const root = document.getElementById(screen);
+    const el = root && [...root.querySelectorAll(sel)].find(e => !has || e.textContent.includes(has));
+    if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  };
+
   Scenarios.nextStep = function (opts = {}) {
     const total = opts.total != null ? opts.total : Cart.total();
     // крок належить сценарію: його route розуміє наступну репліку (прапорець — wine / replace / photoList…)
@@ -271,6 +279,8 @@ const Scenarios = {
       if (row) setTimeout(() => row.scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
       return;
     }
+    // перехід на екран одразу до потрібного блоку («Знайти у застосунку»): екран заїжджає — тоді прокручуємо
+    if (n.go && n.spot) setTimeout(() => Scenarios.spot(n.spot), 600);
     if (n.run && !n.go) return runStep.call(this, n, said);
     return baseRunNode.call(this, n, said);
   };
@@ -397,6 +407,12 @@ const Scenarios = {
     for (const s of Object.values(Scenarios.all)) {
       const node = s.route && s.route(t, this.lastNode);
       if (node) return this.runNode(node, text.trim());
+    }
+    // Chats: «Не зрозумів» за правилами — одним реченням, на «ти», і 2–3 доречні старти
+    if (Branch.current === 'd') {
+      this.push('user', text);
+      const starts = ['wine', 'predict', 'recipe'].map(id => Scenarios.all[id] && { ...Scenarios.all[id].opener, kind: 'node' }).filter(Boolean);
+      return this.reply('Не зовсім зрозумів. Можу підібрати товар, зібрати кошик чи знайти рецепт — або напиши інакше.', null, this.nodes(starts));
     }
     return baseAsk(text);
   };
