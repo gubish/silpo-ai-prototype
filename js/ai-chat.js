@@ -493,11 +493,12 @@ const AiChat = {
         ${m.products.map(p => this.card(p)).join('')}
       </div>
       ${tags(m, i)}` : `
-      <div class="ai-msg ai-msg--${m.from}${m.cont ? ' ai-msg--cont' : ''}">
+      <div class="ai-msg ai-msg--${m.from}${m.cont ? ' ai-msg--cont' : ''}${m.voice ? ' ai-msg--voice' : ''}">
         ${i === speaking ? avatar : ''}
         ${context(m, i)}
         ${m.photo ? `<img class="ai-msg__photo" src="${m.photo}" alt="Фото від гостя">` : ''}
-        ${m.photo && !m.text ? '' : `<div class="ai-bubble ${m.typing ? 'ai-bubble--typing' : ''}" data-msg="${i}">${m.typing ? '<i></i><i></i><i></i>' : ''}</div>`}
+        ${m.voice && m.voice.dur && this.voiceHtml ? this.voiceHtml(m, i) : ''}
+        ${m.photo && !m.text ? '' : `<div class="ai-bubble ${m.typing ? 'ai-bubble--typing' : ''}${m.voice ? (m.voice.dur ? ' ai-bubble--transcript' : ' ai-bubble--spoken') : ''}" data-msg="${i}">${m.typing ? '<i></i><i></i><i></i>' : ''}</div>`}
       </div>
       ${tags(m, i)}`).join('');
     // текст вставляємо окремо, щоб повідомлення ніколи не читалося як розмітка
