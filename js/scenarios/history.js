@@ -87,7 +87,7 @@
   function lastBought(id) {
     ensure();
     const r = RECEIPTS.find(x => x.items.some(([i]) => i === id));
-    if (!r) return { text: `У твоїх чеках за 2 місяці ${nameOf(id)} немає — можливо, купував раніше чи з іншої картки.`, chips: [] };
+    if (!r) return { text: `У ваших чеках за 2 місяці ${nameOf(id)} немає — можливо, купували раніше чи з іншої картки.`, chips: [] };
     const [, q] = r.items.find(([i]) => i === id);
     const times = RECEIPTS.filter(x => x.items.some(([i]) => i === id)).length;
     return {
@@ -99,7 +99,7 @@
 
   const isWine = id => /^wine/.test(id);
   const freqOf = id => RECEIPTS.filter(r => r.items.some(([i]) => i === id)).length;
-  const howOften = n => (n >= 6 ? 'береш щотижня' : n >= 3 ? 'береш кілька разів на місяць' : `брав ${count(n, TIMES)} за 2 місяці`);
+  const howOften = n => (n >= 6 ? 'берете щотижня' : n >= 3 ? 'берете кілька разів на місяць' : `брали ${count(n, TIMES)} за 2 місяці`);
 
   /** «Яке вино я брав у серпні?» — знайти забутий товар у чеках; місяць — якщо названо */
   function wine(month) {
@@ -109,7 +109,7 @@
     if (!found.length) {
       const any = RECEIPTS.flatMap(r => r.items.filter(([id]) => isWine(id) && P(id)).map(([id]) => ({ id, r })))[0];
       return {
-        text: `У ${MONTHS_LOC[month]} вина в твоїх чеках немає.${any ? ` Останнє — ${dateOf(any.r.days)}: ${nameOf(any.id)}.` : ''}`,
+        text: `У ${MONTHS_LOC[month]} вина у ваших чеках немає.${any ? ` Останнє — ${dateOf(any.r.days)}: ${nameOf(any.id)}.` : ''}`,
         items: any ? [{ id: any.id }] : [],
       };
     }
@@ -142,10 +142,10 @@
     const ids = [...new Set(RECEIPTS.flatMap(r => r.items.map(([id]) => id)))]
       .filter(id => P(id) && P(id).oldPrice && freqOf(id) >= 2 && !isWine(id)) // алкоголь сам не пропонуємо
       .sort((a, b) => freqOf(b) - freqOf(a));
-    if (!ids.length) return { text: 'З твоїх звичних зараз нічого не зі знижкою.', chips: [node('Скільки я витратив за місяць?', () => { S = fresh(); return spent(); })] };
+    if (!ids.length) return { text: 'З ваших звичних зараз нічого не зі знижкою.', chips: [node('Скільки я витратив за місяць?', () => { S = fresh(); return spent(); })] };
     const off = id => P(id).discount || Math.round((1 - P(id).price / P(id).oldPrice) * 100); // знижка — як на цінникові
     return {
-      text: `З того, що ти береш регулярно, зараз дешевше ${count(ids.length, GOODS)}: ${ids.map(id => `${nameOf(id)} −${off(id)}%`).join(', ')}.`,
+      text: `З того, що ви берете регулярно, зараз дешевше ${count(ids.length, GOODS)}: ${ids.map(id => `${nameOf(id)} −${off(id)}%`).join(', ')}.`,
       items: ids.map((id, i) => ({ id, note: cap(howOften(freqOf(id))), pick: i === 0 })), // знижка вже на цінникові картки
       chips: [node('Скільки я витратив за місяць?', () => { S = fresh(); return spent(); })],
     };
@@ -171,7 +171,7 @@
     S.rows = r.items.filter(([id]) => P(id)).map(([id, qty]) => ({ id, qty, ...(Cart.items.has(id) ? { off: true, offNote: 'є в кошику' } : {}) }));
     const sum = S.rows.filter(x => !x.off).reduce((s, x) => s + P(x.id).price * x.qty, 0);
     return {
-      text: `Чек від ${dateOf(r.days)} (${how(r)}): ${count(S.rows.length, GOODS)}, за поточними цінами — ${money(sum)}. Що не треба — прибери:`,
+      text: `Чек від ${dateOf(r.days)} (${how(r)}): ${count(S.rows.length, GOODS)}, за поточними цінами — ${money(sum)}. Що не треба — приберіть:`,
       list: draft(),
     };
   }
@@ -198,7 +198,7 @@
     ensure();
     const list = inPeriod(), total = list.reduce((s, r) => s + sumOf(r), 0);
     return {
-      text: `Оцінювати не буду — це твоє рішення. Цифри: ${PERIODS[S.period].label} ${money(total)}, у середньому ${money(total / Math.max(1, list.length))} за чек.`,
+      text: `Оцінювати не буду — це ваше рішення. Цифри: ${PERIODS[S.period].label} ${money(total)}, у середньому ${money(total / Math.max(1, list.length))} за чек.`,
       chips: [node('Що я купую найчастіше?', frequent)],
     };
   }

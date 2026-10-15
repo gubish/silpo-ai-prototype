@@ -161,7 +161,7 @@
     document.body.appendChild(box);
   }
 
-  /* Над QR-кодом — посилання для розробників: правила МГ, інструкція для LLM і що ще передати */
+  /* Над QR-кодом — посилання для розробників: правила МГ, тон голосу, інструкція для LLM і що ще передати */
   function renderDevCard() {
     const base = 'https://github.com/gubish/silpo-ai-prototype/blob/main/docs/';
     const box = document.createElement('nav');
@@ -169,6 +169,7 @@
     box.setAttribute('aria-label', 'Для розробників');
     box.innerHTML = `<b>Для розробників</b>
       <a href="${base}mg-dialog-rules.md" target="_blank" rel="noopener">Правила МГ</a>
+      <a href="${base}mg-tone-of-voice.md" target="_blank" rel="noopener">Тон голосу МГ</a>
       <a href="${base}mg-dialog-rules.md#інструкція-для-моделі" target="_blank" rel="noopener">Інструкція для LLM</a>
       <a href="${base}for-developers.md" target="_blank" rel="noopener">Що ще передати</a>`;
     document.body.appendChild(box);

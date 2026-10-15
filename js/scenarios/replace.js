@@ -94,7 +94,7 @@
     draftTitle: 'Чернетка: звичайне замовлення',
     more: 'Що ще я брав?',
     howOften: { 7: 'щотижня', 14: 'раз на 2 тижні', 30: 'раз на місяць' },
-    ask: 'Що не так — прибери, заміни або просто напиши.',
+    ask: 'Що не так — приберіть, замініть або просто напишіть.',
     addAll: 'Додати все в кошик',
     replaceSome: 'Замінити товар',
     whichOne: 'Що саме замінити?',
@@ -194,7 +194,7 @@
   /** Що з регулярного ще рано брати — одне речення поради */
   function notYet(days) {
     const h = history().filter(x => !due(x, days)).sort((a, b) => (a.every - a.last) - (b.every - b.last))[0];
-    return h ? `${cap(nameOf(h.id))} не ставлю: брав ${ago(h.last)}, а береш ${T.howOften[h.every]}.` : '';
+    return h ? `${cap(nameOf(h.id))} не ставлю: брали ${ago(h.last)}, а берете ${T.howOften[h.every]}.` : '';
   }
   /** Рядок контексту без того, що гість щойно сказав дослівно (S.just) — це видно в його репліці */
   const shown = ctx => ctx.filter(c => !(S.just || []).includes(c.key));
@@ -231,7 +231,7 @@
     if (!history().length) {
       // немає історії — чесно, без вигаданого «звичайного» кошика
       return {
-        text: 'Чесно: замовлень у тебе ще не було, тож передбачати нема з чого. Можу зібрати кошик інакше:',
+        text: 'Чесно: замовлень у вас ще не було, тож передбачати нема з чого. Можу зібрати кошик інакше:',
         chips: ['photo-list', 'recipe', 'event'].map(id => Scenarios.all[id] && Scenarios.all[id].opener).filter(Boolean),
       };
     }
@@ -240,7 +240,7 @@
     // до дешевшої доставки близько — кажемо суму одразу (стейкхолдер просив) і даємо чіп
     const nd = nextDelivery(), near = nd && nd.left <= 300;
     return {
-      text: `Зібрав, як ти зазвичай береш, — з твоїх замовлень за ${count(WEEKS, WEEKSW)}: ${count(taken().length, GOODS)} на ${money(total())}`
+      text: `Зібрав, як ви зазвичай берете, — з ваших замовлень за ${count(WEEKS, WEEKSW)}: ${count(taken().length, GOODS)} на ${money(total())}`
         + (near ? `, до доставки за ${money(nd.price)} ще ${money(nd.left)}` : '') + '.'
         + (inCartRows.length ? ` ${cap(inCartRows.map(r => nameOf(r.id)).join(', '))} вже в кошику — не рахую.` : ''),
       list: draftList(),
@@ -255,12 +255,12 @@
     const days = PERIODS[S.period].days;
     const ids = [
       ...history().filter(h => !due(h, days)).map(h => ({ id: h.id, note: `${cap(T.howOften[h.every])}, останній раз ${ago(h.last)}` })),
-      ...RARE.filter(x => P(x.id)).map(x => ({ id: x.id, note: `Брав один раз, ${ago(x.last)}` })),
+      ...RARE.filter(x => P(x.id)).map(x => ({ id: x.id, note: `Брали один раз, ${ago(x.last)}` })),
     ].filter(x => !S.draft.some(r => r.id === x.id) && !Cart.items.has(x.id)).slice(0, 4);
     S.target = null;
-    if (!ids.length) return { text: 'Більше нічого — усе, що ти брав, уже в чернетці чи в кошику.' };
+    if (!ids.length) return { text: 'Більше нічого — усе, що ви брали, уже в чернетці чи в кошику.' };
     S.addMap = Object.fromEntries(ids.map(x => [x.id, true]));
-    return { text: 'Ось що ти брав рідше. Додам у чернетку, якщо треба:', items: ids.map(x => ({ ...x, noAdd: true, act: 'Додати' })) };
+    return { text: 'Ось що ви брали рідше. Додам у чернетку, якщо треба:', items: ids.map(x => ({ ...x, noAdd: true, act: 'Додати' })) };
   }
 
   /* ---------- Справжній кошик (вхід — іконка заміни в рядку кошика або чіп МГ над ним) ----------
@@ -378,7 +378,7 @@
   }
   function addToDraft(id) {
     const h = history().find(x => x.id === id);
-    S.draft.push({ id, qty: 1, added: true, hint: h ? T.howOften[h.every] : 'брав один раз' }); S.marks[id] = 'new';
+    S.draft.push({ id, qty: 1, added: true, hint: h ? T.howOften[h.every] : 'брали один раз' }); S.marks[id] = 'new';
     return { text: `Додав у чернетку. Тепер ${count(taken().length, GOODS)} на ${money(total())}:`, list: draftList(), chips: [followUp().chip] };
   }
   /** Вхід з рядка кошика */
@@ -501,7 +501,7 @@
   function addAll() {
     if (S.inCart) return { text: 'Чернетка вже в кошику.', chips: [{ label: T.checkout, go: 'cart' }] };
     const rows = taken().map(r => ({ ...r }));
-    if (!rows.length) return { text: 'У чернетці нічого не обрано — поверни потрібне кнопкою «+».', list: draftList() };
+    if (!rows.length) return { text: 'У чернетці нічого не обрано — поверніть потрібне кнопкою «+».', list: draftList() };
     rows.forEach(r => Cart.add(r.id, r.qty));
     S.inCart = true;
     return {

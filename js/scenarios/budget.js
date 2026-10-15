@@ -252,7 +252,7 @@
   function cheaper() {
     const op = nextSwap();
     if (!op) {
-      return { text: 'Рівноцінних дешевших замін більше немає. Можу прибрати щось — напиши, що не треба.', chips: [] };
+      return { text: 'Рівноцінних дешевших замін більше немає. Можу прибрати щось — напишіть, що не треба.', chips: [] };
     }
     const id = op.slice(5);
     const before = total();
@@ -304,7 +304,7 @@
         text: `Додано в кошик: ${count(add.length, GOODS)} на ${money(sum)}`,
         undo: () => { add.forEach(r => Cart.add(r.id, -r.qty)); S.inCart = false; return { text: 'Скасував: прибрав їх із кошика.', list: draft(), chips: chips() }; },
       },
-      text: `${left >= 0 ? `У межах бюджету, лишається ${money(left)}` : `Понад бюджет на ${money(-left)}`}${f.note}.${S.pickup ? ' На оформленні обери самовивіз.' : ''}`,
+      text: `${left >= 0 ? `У межах бюджету, лишається ${money(left)}` : `Понад бюджет на ${money(-left)}`}${f.note}.${S.pickup ? ' На оформленні оберіть самовивіз.' : ''}`,
       chips: [f.chip].filter(Boolean),
     };
   }
